@@ -1,0 +1,49 @@
+name: Publish to npm
+on:
+    workflow_call:
+        inputs:
+            dir:
+                description: The directory to release
+                type: string
+                default: "."
+        outputs:
+            id:
+                description: "The npm package@version string we published"
+                value: ${{ jobs.npm.outputs.id }}
+permissions: {}
+jobs:
+    npm:
+        name: Publish to npm
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+            id-token: write
+        outputs:
+            id: ${{ steps.npm-publish.outputs.id }}
+        steps:
+            - name: 🧮 Checkout code
+              uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+              with:
+                  ref: staging
+                  persist-credentials: false
+
+            - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6
+            - name: 🔧 pnpm cache
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+              with:
+                  cache: "pnpm"
+                  registry-url: "https://registry.npmjs.org"
+                  node-version-file: ${{ inputs.dir }}/package.json
+
+            - name: 🔨 Install dependencies
+              run: "pnpm install --frozen-lockfile"
+
+            - name: 🚀 Publish to npm
+              id: npm-publish
+              working-directory: ${{ inputs.dir }}
+              run: |
+                  pnpm publish --provenance --access public --publish-branch staging --tag "$TAG"
+                  release=$(jq -r '"\(.name)@\(.version)"' package.json)
+                  echo "id=$release" >> $GITHUB_OUTPUT
+              env:
+                  TAG: ${{ contains(steps.npm-publish.outputs.id, '-rc.') && 'next' || 'latest' }}
