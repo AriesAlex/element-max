@@ -18,3 +18,13 @@ export const getDisplayMediaCallback = (): DisplayMediaCallback | null => {
 export const setDisplayMediaCallback = (callback: DisplayMediaCallback | null): void => {
     displayMediaCallback = callback;
 };
+
+export const withWindowsSystemAudio = (
+    streams: Streams,
+    audioRequested: boolean,
+    platform: NodeJS.Platform = process.platform,
+): Streams => {
+    if (platform !== "win32" || !audioRequested) return streams;
+
+    return { ...streams, audio: "loopback" };
+};

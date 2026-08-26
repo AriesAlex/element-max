@@ -1,0 +1,7 @@
+{
+    "appId": "ru.ariex.elementmax",
+    "name": "element-max",
+    "productName": "Element Max",
+    "description": "Element with high-quality screen sharing and Windows system audio",
+    "protocols": ["ru.ariex.elementmax", "element-max"]
+}

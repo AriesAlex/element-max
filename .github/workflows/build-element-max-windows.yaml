@@ -1,0 +1,91 @@
+name: Build Element Max for Windows
+
+on:
+    workflow_dispatch: {}
+    push:
+        tags: ["element-max-v*"]
+
+permissions:
+    contents: read
+    actions: write
+
+jobs:
+    build:
+        runs-on: windows-2025
+        defaults:
+            run:
+                shell: pwsh
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+              with:
+                  persist-credentials: false
+
+            - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+            - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+              with:
+                  node-version-file: .node-version
+
+            - name: Build compatible Element Call widget
+              run: |
+                  pnpm --dir vendor/element-call install --frozen-lockfile
+                  pnpm --dir vendor/element-call build:embedded
+
+            - name: Install Element dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build Element webapp
+              run: |
+                  Copy-Item apps/desktop/element.max/config.json apps/web/config.json
+                  pnpm --filter element-web build
+
+            - name: Prepare Element Desktop
+              run: |
+                  Copy-Item -Recurse apps/web/webapp apps/desktop/webapp
+                  Copy-Item -Force apps/desktop/element.max/config.json apps/desktop/webapp/config.json
+                  Copy-Item apps/desktop/element.max/build.json apps/desktop/variant.json
+                  pnpm --filter element-desktop asar-webapp
+
+            - name: Configure MSVC
+              uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+              with:
+                  arch: x64
+
+            - name: Build native dependencies
+              working-directory: apps/desktop
+              run: pnpm run build:native --target x86_64-pc-windows-msvc
+
+            - name: Package Element Max
+              working-directory: apps/desktop
+              env:
+                  VARIANT_PATH: variant.json
+              run: pnpm run build --publish never -w squirrel
+
+            - name: Delete previous Element Max artifacts
+              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+              with:
+                  script: |
+                      const artifacts = await github.paginate(
+                          github.rest.actions.listArtifactsForRepo,
+                          {
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              name: "element-max-windows-x64",
+                              per_page: 100,
+                          },
+                      );
+
+                      for (const artifact of artifacts) {
+                          await github.rest.actions.deleteArtifact({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              artifact_id: artifact.id,
+                          });
+                      }
+
+            - name: Upload installer
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+              with:
+                  name: element-max-windows-x64
+                  path: apps/desktop/dist/**/Element Max Setup*.exe
+                  if-no-files-found: error
+                  retention-days: 1

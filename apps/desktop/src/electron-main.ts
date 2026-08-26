@@ -38,7 +38,7 @@ import webContentsHandler from "./webcontents-handler.js";
 import * as updater from "./updater.js";
 import ProtocolHandler from "./protocol.js";
 import { _t, AppLocalization } from "./language-helper.js";
-import { setDisplayMediaCallback } from "./displayMediaCallback.js";
+import { setDisplayMediaCallback, withWindowsSystemAudio } from "./displayMediaCallback.js";
 import { setupMacosTitleBar } from "./macos-titlebar.js";
 import { setupMediaAuth } from "./media-auth.js";
 import { type RendererRecovery, setupRendererRecovery } from "./renderer-recovery.js";
@@ -388,7 +388,11 @@ app.on("ready", async () => {
     rendererRecovery = setupRendererRecovery(global.mainWindow);
 
     session.defaultSession.setDisplayMediaRequestHandler(
-        (_, callback) => {
+        (request, callback) => {
+            const completeRequest = (streams: Parameters<typeof callback>[0]): void => {
+                callback(withWindowsSystemAudio(streams, request.audioRequested));
+            };
+
             if (process.env.XDG_SESSION_TYPE === "wayland") {
                 // On Wayland, calling getSources() opens the xdg-desktop-portal picker.
                 // The user can only select a single source there, so Electron will return an array with exactly one entry.
@@ -396,18 +400,18 @@ app.on("ready", async () => {
                     .getSources({ types: ["screen", "window"] })
                     .then((sources) => {
                         // oxlint-disable-next-line promise/no-callback-in-promise
-                        callback({ video: sources[0] });
+                        completeRequest({ video: sources[0] });
                     })
                     .catch((err) => {
                         // If the user cancels the dialog an error occurs "Failed to get sources"
                         console.error("Wayland: failed to get user-selected source:", err);
                         // oxlint-disable-next-line promise/no-callback-in-promise
-                        callback({ video: { id: "", name: "" } }); // The promise does not return if no dummy is passed here as source
+                        completeRequest({ video: { id: "", name: "" } }); // The promise does not return if no dummy is passed here as source
                     });
             } else {
                 global.mainWindow?.webContents.send("openDesktopCapturerSourcePicker");
             }
-            setDisplayMediaCallback(callback);
+            setDisplayMediaCallback(completeRequest);
         },
         { useSystemPicker: true },
     ); // Use Mac OS 15+ native picker

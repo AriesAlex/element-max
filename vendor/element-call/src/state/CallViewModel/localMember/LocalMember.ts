@@ -10,6 +10,7 @@ import {
   ParticipantEvent,
   type LocalParticipant,
   type ScreenShareCaptureOptions,
+  type TrackPublishOptions,
   RoomEvent,
   MediaDeviceFailure,
 } from "livekit-client";
@@ -713,12 +714,26 @@ export const createLocalMembership$ = ({
         audio: {
           autoGainControl: false,
           noiseSuppression: false,
+          // Keep Element's own call audio out of the Windows loopback track.
+          restrictOwnAudio: true,
           voiceIsolation: false,
         },
         selfBrowserSurface: "include",
         surfaceSwitching: "include",
         systemAudio: "include",
+        resolution: {
+          width: 2560,
+          height: 1440,
+          frameRate: 60,
+        },
       };
+      const screensharePublishSettings = {
+        screenShareEncoding: {
+          maxBitrate: 15_000_000,
+          maxFramerate: 60,
+        },
+        videoCodec: "vp9",
+      } satisfies TrackPublishOptions;
       const targetScreenshareState = !sharingScreen$.value;
       logger.info(
         `toggleScreenSharing called. Switching ${
@@ -734,7 +749,11 @@ export const createLocalMembership$ = ({
       // is still initializing or publishing tracks, because there's no
       // technical reason to disallow this. LiveKit will publish if it can.
       participant$.value
-        ?.setScreenShareEnabled(targetScreenshareState, screenshareSettings)
+        ?.setScreenShareEnabled(
+          targetScreenshareState,
+          screenshareSettings,
+          screensharePublishSettings,
+        )
         .catch(logger.error);
     };
   }
