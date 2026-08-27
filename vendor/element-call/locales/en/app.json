@@ -194,6 +194,24 @@
   "return_home_button": "Return to home screen",
   "room_auth_view_continue_button": "Continue",
   "room_auth_view_ssla_caption": "By clicking \"Join call now\", you agree to our <2>Software and Services License Agreement (SSLA)</2>",
+  "screen_share_settings": {
+    "audio_off": "off",
+    "audio_on": "on",
+    "automatic": "Automatic",
+    "current": "Current capture",
+    "frameRate": "Frame rate (FPS)",
+    "height": "Height (px)",
+    "maxBitrateMbps": "Maximum bitrate (Mbps)",
+    "next_start_hint": "Changes apply the next time screen sharing starts. If either width or height is empty, resolution is automatic; leave FPS or bitrate empty to use the engine default.",
+    "open": "Screen sharing settings",
+    "requested": "Requested capture",
+    "status_active": "{{width}}×{{height}} · {{frameRate}} FPS · audio {{audio}}",
+    "status_idle": "Not sharing",
+    "system_audio": "Share system audio",
+    "title": "Screen sharing",
+    "videoCodec": "Video codec",
+    "width": "Width (px)"
+  },
   "screenshare_button_label": "Share screen",
   "settings": {
     "audio_tab": {

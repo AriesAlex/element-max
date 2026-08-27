@@ -43,6 +43,7 @@ function buildMinimalCallViewModel(layout: Layout): CallViewModel {
     gridMode$: constant("grid"),
     setGridMode: (): void => {},
     sharingScreen$: constant(false),
+    screenShareStatus$: constant(null),
     toggleScreenSharing: null,
     audioOutputSwitcher$: constant(null),
     handsRaised$: constant({}),

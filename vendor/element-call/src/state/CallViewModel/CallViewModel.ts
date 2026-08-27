@@ -147,6 +147,7 @@ import {
   type WrappedUserMediaViewModel,
 } from "../media/WrappedUserMediaViewModel.ts";
 import { type ScreenShareViewModel } from "../media/ScreenShareViewModel.ts";
+import { type ScreenShareStatus } from "../ScreenShareSettings.ts";
 import { type UserMediaViewModel } from "../media/UserMediaViewModel.ts";
 import { type MediaViewModel } from "../media/MediaViewModel.ts";
 import { type LocalUserMediaViewModel } from "../media/LocalUserMediaViewModel.ts";
@@ -264,6 +265,8 @@ export interface CallViewModel {
    * Whether we are sharing our screen.
    */
   sharingScreen$: Behavior<boolean>;
+  /** The media settings reported by the active local screen capture track. */
+  screenShareStatus$: Behavior<ScreenShareStatus | null>;
 
   // UI interactions
   /**
@@ -1735,6 +1738,7 @@ export function createCallViewModel$(
     leave: localMembership.requestDisconnect,
     toggleScreenSharing: toggleScreenSharing,
     sharingScreen$: sharingScreen$,
+    screenShareStatus$: localMembership.screenShareStatus$,
 
     tapScreen: (): void => screenTap$.next(),
     tapControls: (): void => controlsTap$.next(),

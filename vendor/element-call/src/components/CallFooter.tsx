@@ -20,7 +20,6 @@ import {
   EndCallButton,
   MicButton,
   VideoButton,
-  ShareScreenButton,
   SettingsButton,
   ReactionToggleButton,
   LoudspeakerButton,
@@ -35,6 +34,8 @@ import {
 } from "./MediaMuteAndSwitchButton";
 import { type ViewModel } from "../state/ViewModel";
 import { useBehavior } from "../useBehavior";
+import { ScreenShareButton } from "./ScreenShareButton";
+import { type ScreenShareStatus } from "../state/ScreenShareSettings";
 
 export interface AudioOutputSwitcher {
   targetOutput: string;
@@ -90,6 +91,7 @@ export interface FooterState {
   layoutMode: GridMode | undefined;
 
   sharingScreen: boolean;
+  screenShareStatus: ScreenShareStatus | null;
 
   /** Also controls if the audio output button is visible */
   audioOutputSwitcher: AudioOutputSwitcher | undefined;
@@ -136,6 +138,7 @@ export const CallFooter: FC<FooterProps> = ({
   const toggleAudio = useBehavior(vm.toggleAudio$);
   const toggleVideo = useBehavior(vm.toggleVideo$);
   const sharingScreen = useBehavior(vm.sharingScreen$);
+  const screenShareStatus = useBehavior(vm.screenShareStatus$);
   const toggleScreenSharing = useBehavior(vm.toggleScreenSharing$);
   const reactionIdentifier = useBehavior(vm.reactionIdentifier$);
   const reactionData = useBehavior(vm.reactionData$);
@@ -231,13 +234,13 @@ export const CallFooter: FC<FooterProps> = ({
 
   if (toggleScreenSharing !== undefined) {
     buttons.push(
-      <ShareScreenButton
+      <ScreenShareButton
         size={buttonSize}
         key="share_screen"
         className={styles.shareScreen}
         enabled={sharingScreen ?? false}
         onClick={toggleScreenSharing}
-        data-testid="incall_screenshare"
+        status={screenShareStatus}
       />,
     );
   }

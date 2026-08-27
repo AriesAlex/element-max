@@ -192,6 +192,7 @@ export function createCallFooterViewModel(
     ),
 
     sharingScreen$: callModel.sharingScreen$,
+    screenShareStatus$: callModel.screenShareStatus$,
     toggleScreenSharing$: constant(callModel.toggleScreenSharing ?? undefined),
 
     audioOutputSwitcher$: scope.behavior(
@@ -262,6 +263,7 @@ export function createLobbyFooterViewModel(
       videoBusy: false,
       layoutMode: undefined,
       sharingScreen: false,
+      screenShareStatus: null,
       audioOutputSwitcher: undefined,
       reactionIdentifier: undefined,
       reactionData: undefined,

@@ -96,6 +96,7 @@ export const Default: Story = {
     hideControls: false,
     asOverlay: false,
     sharingScreen: false,
+    screenShareStatus: null,
     audioOutputSwitcher: undefined,
     reactionIdentifier: undefined,
     reactionData: undefined,

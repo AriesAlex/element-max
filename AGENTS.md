@@ -2,16 +2,19 @@
 
 Этот приватный репозиторий содержит кастомный Windows-клиент Element Max на базе стабильных релизов
 `element-hq/element-web`. Цель форка — сохранить совместимость с используемым MatrixRTC и дать
-воспроизводимую трансляцию экрана 2560×1440, 60 FPS, VP9, до 15 Мбит/с и системный звук Windows.
+гибко настраиваемую трансляцию экрана с ручными шириной, высотой, FPS, битрейтом, кодеком,
+индикатором фактических параметров захвата и системным звуком Windows.
 
 ## Архитектура и источники истины
 
 - `apps/web` — Element Web, который встраивает Element Call как статический widget.
 - `apps/desktop` — Electron-оболочка. Захват Windows loopback принадлежит этому слою; не переносить его
   в web-клиент и не подменять виртуальными аудиоустройствами.
-- `vendor/element-call` — отслеживаемое `git subtree` совместимой версии Element Call. Качество захвата и
-  публикации экрана задаётся в
-  `vendor/element-call/src/state/CallViewModel/localMember/LocalMember.ts`.
+- `vendor/element-call` — отслеживаемое `git subtree` совместимой версии Element Call.
+- `vendor/element-call/src/state/ScreenShareSettings.ts` — единственный владелец сохраняемой конфигурации
+  захвата и публикации экрана. Не дублировать constraints и publish options в view model.
+- `vendor/element-call/src/components/ScreenShareButton.tsx` — UI ручных настроек и фактического статуса
+  захвата. `LocalMember.ts` только применяет конфигурацию и публикует фактические track settings.
 - `vendor/matrix-js-sdk` — отслеживаемое `git subtree` точного Matrix JS SDK commit, зафиксированного
   совместимым Element Call. Он собирается до Element Call и подключается к нему через локальную `link:`
   dependency, чтобы git dependency не запускала невоспроизводимый package lifecycle.
@@ -51,8 +54,8 @@ corepack pnpm@11.2.2 install --frozen-lockfile
 Pop-Location
 Push-Location vendor/element-call
 corepack pnpm@11.6.0 install --frozen-lockfile
-corepack pnpm@11.6.0 build:embedded
-corepack pnpm@11.6.0 test:unit --run src/state/CallViewModel/localMember/LocalMember.test.ts
+corepack pnpm@11.6.0 build:full --config vite-embedded.config.js
+corepack pnpm@11.6.0 test:unit --run src/state/ScreenShareSettings.test.ts src/components/ScreenShareButton.test.tsx src/state/CallViewModel/localMember/LocalMember.test.ts
 Pop-Location
 corepack pnpm@11.20.0 install --frozen-lockfile
 corepack pnpm@11.20.0 --dir apps/desktop test:unit --run src/displayMediaCallback.test.ts src/ipc.test.ts
@@ -69,17 +72,19 @@ corepack pnpm@11.20.0 --dir apps/desktop run build --publish never -w squirrel
 ```
 
 Установка Matrix JS SDK запускает его штатный `prepare` build; не запускай тот же build повторно.
-`build:embedded` пишет готовый локальный пакет напрямую в `vendor/element-call/embedded/web/dist`.
+`build:full --config vite-embedded.config.js` пишет готовый локальный пакет напрямую в
+`vendor/element-call/embedded/web/dist` и не запускает вложенный `pnpm` неправильной корневой версии.
 Полный upstream desktop suite сейчас содержит Windows-неспецифичные ожидания Unix-разделителей путей,
 поэтому для этого patch запускаются два затронутых desktop test-файла и проверка типов.
 Нативной Windows-сборке нужны MSVC x64 environment, Rust target `x86_64-pc-windows-msvc`, native Windows
 Perl, Tcl и NASM. В CI их настраивает единственный Windows workflow; локально не подменяй MSVC `link.exe`
 одноимённым Unix tool из Git `usr/bin`.
 
-- После изменений screen share обязательно проверь фактические capture/publish constraints, запуск
-  упакованного приложения и реальную зашифрованную MatrixRTC-трансляцию. Для Windows нужны видео
-  2560×1440@60, VP9 с потолком 15 Мбит/с и отдельная audio track с системным звуком без голоса самого
-  Element. 165 FPS не является контрактом этого форка.
+- После изменений screen share обязательно проверь произвольные ручные запросы, включая 3840×2160@120
+  и 2560×1440@165, пустые автоматические значения, выбранные кодек и битрейт, а также фактические
+  resolution/FPS/audio из media track. Фиксированного пресета разрешения или FPS у форка нет: начальные
+  значения редактируются без встроенного верхнего ограничения. Для Windows отдельная audio track должна
+  содержать системный звук без голоса самого Element.
 - Electron должен оставаться не ниже версии, где исправлено применение `restrictOwnAudio` к display
   media. При обновлении Electron повторно проверяй loopback и отсутствие эха звонка.
 - `.github/workflows/build-element-max-windows.yaml` собирает только x64 Squirrel installer. Перед

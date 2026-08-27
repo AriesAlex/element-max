@@ -37,7 +37,7 @@ jobs:
               working-directory: vendor/element-call
               run: |
                   corepack pnpm@11.6.0 install --frozen-lockfile
-                  corepack pnpm@11.6.0 build:embedded
+                  corepack pnpm@11.6.0 build:full --config vite-embedded.config.js
 
             - name: Install Element dependencies
               run: pnpm install --frozen-lockfile

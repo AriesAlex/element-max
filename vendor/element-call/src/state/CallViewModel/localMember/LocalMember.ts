@@ -9,8 +9,6 @@ import {
   type Participant,
   ParticipantEvent,
   type LocalParticipant,
-  type ScreenShareCaptureOptions,
-  type TrackPublishOptions,
   RoomEvent,
   MediaDeviceFailure,
 } from "livekit-client";
@@ -35,6 +33,7 @@ import {
   startWith,
   switchMap,
   tap,
+  timer,
 } from "rxjs";
 import { type Logger } from "matrix-js-sdk/lib/logger";
 import { deepCompare } from "matrix-js-sdk/lib/utils";
@@ -64,6 +63,11 @@ import {
 import { type HomeserverConnected } from "./HomeserverConnected.ts";
 import { type LocalTransport } from "./LocalTransport.ts";
 import { areLivekitTransportsEqual } from "../remoteMembers/MatrixLivekitMembers.ts";
+import {
+  getScreenShareOptions,
+  getScreenShareStatus,
+  type ScreenShareStatus,
+} from "../../ScreenShareSettings.ts";
 
 export enum TransportState {
   /** Not even a transport is available to the LocalMembership */
@@ -186,6 +190,8 @@ export const createLocalMembership$ = ({
   requestDisconnect: () => void;
   localMemberState$: Behavior<LocalMemberState>;
   sharingScreen$: Behavior<boolean>;
+  /** The media settings reported by the active screen capture track. */
+  screenShareStatus$: Behavior<ScreenShareStatus | null>;
   /**
    * Callback to toggle screen sharing. If null, screen sharing is not possible.
    */
@@ -700,40 +706,24 @@ export const createLocalMembership$ = ({
     ),
   );
 
+  const screenShareStatus$ = scope.behavior<ScreenShareStatus | null>(
+    combineLatest([participant$, sharingScreen$]).pipe(
+      switchMap(([participant, sharingScreen]) =>
+        participant && sharingScreen
+          ? timer(0, 1000).pipe(map(() => getScreenShareStatus(participant)))
+          : of(null),
+      ),
+    ),
+    null,
+  );
+
   let toggleScreenSharing: (() => void) | null = null;
   if (
     "getDisplayMedia" in (navigator.mediaDevices ?? {}) &&
     !getUrlParams().hideScreensharing
   ) {
     toggleScreenSharing = (): void => {
-      const screenshareSettings: ScreenShareCaptureOptions = {
-        // Screen share audio shouldn't have any filtering.
-        // "echoCancellation" is purposely excluded, as setting it to
-        // false causes the screen share audio track to include
-        // an echo of the incoming participant's voice
-        audio: {
-          autoGainControl: false,
-          noiseSuppression: false,
-          // Keep Element's own call audio out of the Windows loopback track.
-          restrictOwnAudio: true,
-          voiceIsolation: false,
-        },
-        selfBrowserSurface: "include",
-        surfaceSwitching: "include",
-        systemAudio: "include",
-        resolution: {
-          width: 2560,
-          height: 1440,
-          frameRate: 60,
-        },
-      };
-      const screensharePublishSettings = {
-        screenShareEncoding: {
-          maxBitrate: 15_000_000,
-          maxFramerate: 60,
-        },
-        videoCodec: "vp9",
-      } satisfies TrackPublishOptions;
+      const screenshareSettings = getScreenShareOptions();
       const targetScreenshareState = !sharingScreen$.value;
       logger.info(
         `toggleScreenSharing called. Switching ${
@@ -751,8 +741,8 @@ export const createLocalMembership$ = ({
       participant$.value
         ?.setScreenShareEnabled(
           targetScreenshareState,
-          screenshareSettings,
-          screensharePublishSettings,
+          screenshareSettings.capture,
+          screenshareSettings.publish,
         )
         .catch(logger.error);
     };
@@ -772,6 +762,7 @@ export const createLocalMembership$ = ({
       ),
     ),
     sharingScreen$,
+    screenShareStatus$,
     toggleScreenSharing,
     connection$: localConnection$,
     internalLoggerRef: logger,

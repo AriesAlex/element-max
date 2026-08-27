@@ -27,7 +27,7 @@ corepack pnpm@11.2.2 install --frozen-lockfile
 popd
 pushd vendor/element-call
 corepack pnpm@11.6.0 install --frozen-lockfile
-corepack pnpm@11.6.0 build:embedded
+corepack pnpm@11.6.0 build:full --config vite-embedded.config.js
 popd
 corepack pnpm@11.20.0 install --frozen-lockfile
 corepack pnpm@11.20.0 --dir apps/desktop test:unit --run src/displayMediaCallback.test.ts src/ipc.test.ts
