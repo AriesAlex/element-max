@@ -199,6 +199,11 @@ try {
     Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "run", "build", "--publish", "never", "-w", "squirrel") -WorkingDirectory $repoRoot
 } finally {
     Invoke-External -FilePath "git" -Arguments (@("restore", "--source=HEAD", "--worktree", "--") + $hakTrackedFiles) -WorkingDirectory $repoRoot
+    Invoke-External -FilePath "git" -Arguments (@("add", "--") + $hakTrackedFiles) -WorkingDirectory $repoRoot
+    $restoredDiff = Get-ExternalOutput -FilePath "git" -Arguments (@("diff", "--cached", "--name-only", "--") + $hakTrackedFiles) -WorkingDirectory $repoRoot
+    if ($restoredDiff) {
+        throw "Failed to restore package manager files after the native build"
+    }
 }
 
 $squirrelDir = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $desktopDistDir -Directory -Filter "squirrel-windows*") -Description "Squirrel output directory"
