@@ -50,7 +50,9 @@ Matrix JS SDK — 11.2.2. Не заменяй эти версии одной г�
 
 ```powershell
 Push-Location vendor/matrix-js-sdk
-corepack pnpm@11.2.2 install --frozen-lockfile
+corepack pnpm@11.2.2 install --frozen-lockfile --ignore-scripts
+corepack pnpm@11.2.2 build:compile
+corepack pnpm@11.2.2 build:types
 Pop-Location
 Push-Location vendor/element-call
 corepack pnpm@11.6.0 install --frozen-lockfile
@@ -71,7 +73,8 @@ $env:VARIANT_PATH = "element.max/build.json"
 corepack pnpm@11.20.0 --dir apps/desktop run build --publish never -w squirrel
 ```
 
-Установка Matrix JS SDK запускает его штатный `prepare` build; не запускай тот же build повторно.
+Matrix JS SDK устанавливается без lifecycle-скриптов, затем compile и types запускаются явно ровно один
+раз под pnpm 11.2.2. Иначе его `prepare` вызывает голый `pnpm` и может подхватить корневую версию 11.20.0.
 `build:full --config vite-embedded.config.js` пишет готовый локальный пакет напрямую в
 `vendor/element-call/embedded/web/dist` и не запускает вложенный `pnpm` неправильной корневой версии.
 Полный upstream desktop suite сейчас содержит Windows-неспецифичные ожидания Unix-разделителей путей,

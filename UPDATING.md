@@ -23,7 +23,9 @@ For a stable Element release:
 git fetch upstream --tags
 git merge --no-ff <new-stable-tag> -m "chore: merge Element Web <new-stable-tag>"
 pushd vendor/matrix-js-sdk
-corepack pnpm@11.2.2 install --frozen-lockfile
+corepack pnpm@11.2.2 install --frozen-lockfile --ignore-scripts
+corepack pnpm@11.2.2 build:compile
+corepack pnpm@11.2.2 build:types
 popd
 pushd vendor/element-call
 corepack pnpm@11.6.0 install --frozen-lockfile

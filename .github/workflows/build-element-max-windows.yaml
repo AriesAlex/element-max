@@ -31,7 +31,10 @@ jobs:
 
             - name: Build compatible Matrix JS SDK
               working-directory: vendor/matrix-js-sdk
-              run: corepack pnpm@11.2.2 install --frozen-lockfile
+              run: |
+                  corepack pnpm@11.2.2 install --frozen-lockfile --ignore-scripts
+                  corepack pnpm@11.2.2 build:compile
+                  corepack pnpm@11.2.2 build:types
 
             - name: Build compatible Element Call widget
               working-directory: vendor/element-call
