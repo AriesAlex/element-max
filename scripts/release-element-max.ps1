@@ -132,7 +132,12 @@ if ($siteVersion.version -ne $version) {
     throw "site/version.json ($($siteVersion.version)) must match the desktop version ($version)"
 }
 
-$repo = Get-ExternalOutput -FilePath $ghPath -Arguments @("repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner") -WorkingDirectory $repoRoot
+$originUrl = Get-ExternalOutput -FilePath "git" -Arguments @("remote", "get-url", "origin") -WorkingDirectory $repoRoot
+$repoPath = ($originUrl -replace "^.*github\.com[:/]", "") -replace "\.git$", ""
+if ($repoPath -notmatch "^[^/]+/[^/]+$") {
+    throw "origin must point to a GitHub repository"
+}
+$repo = Get-ExternalOutput -FilePath $ghPath -Arguments @("repo", "view", $repoPath, "--json", "nameWithOwner", "--jq", ".nameWithOwner") -WorkingDirectory $repoRoot
 if (-not $repo) {
     throw "Unable to resolve the GitHub repository"
 }
@@ -181,6 +186,7 @@ try {
         Remove-Item -LiteralPath $desktopDistDir -Recurse -Force
     }
     $env:NX_DAEMON = "false"
+    $env:NX_SKIP_NX_CACHE = "true"
     $env:VARIANT_PATH = "element.max/build.json"
     $env:VERSION = $version
 
@@ -194,6 +200,11 @@ $squirrelDir = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $desktopDis
 $setup = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $desktopDistDir -Recurse -File -Filter "*Setup*.exe") -Description "setup executable"
 $releases = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $squirrelDir.FullName -File -Filter "RELEASES") -Description "RELEASES file"
 $fullPackage = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $squirrelDir.FullName -File -Filter "*-full.nupkg") -Description "full Squirrel package"
+
+$expectedFullPackageName = "element-max-$($version.Replace('-max.', '-max'))-full.nupkg"
+if ($fullPackage.Name -ne $expectedFullPackageName -or $setup.Name -notlike "*$version*") {
+    throw "Squirrel output version does not match $version"
+}
 
 $releaseLines = @(Get-Content -LiteralPath $releases.FullName | Where-Object { $_.Trim() })
 if ($releaseLines.Count -ne 1) {
