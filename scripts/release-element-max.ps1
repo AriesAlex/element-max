@@ -166,6 +166,8 @@ Invoke-Pnpm -Version "11.6.0" -Arguments @("build:full", "--config", "vite-embed
 
 Write-Host "Building Element Web"
 Invoke-Pnpm -Version "11.20.0" -Arguments @("install", "--frozen-lockfile") -WorkingDirectory $repoRoot
+Invoke-Pnpm -Version "11.20.0" -Arguments @("exec", "nx", "daemon", "--stop") -WorkingDirectory $repoRoot
+$env:NX_DAEMON = "false"
 Copy-Item -LiteralPath (Join-Path $desktopDir "element.max/config.json") -Destination (Join-Path $repoRoot "apps/web/config.json") -Force
 Invoke-Pnpm -Version "11.20.0" -Arguments @("--filter", "element-web", "build") -WorkingDirectory $repoRoot
 
@@ -185,7 +187,6 @@ try {
     if (Test-Path -LiteralPath $desktopDistDir) {
         Remove-Item -LiteralPath $desktopDistDir -Recurse -Force
     }
-    $env:NX_DAEMON = "false"
     $env:NX_SKIP_NX_CACHE = "true"
     $env:VARIANT_PATH = "element.max/build.json"
     $env:VERSION = $version
