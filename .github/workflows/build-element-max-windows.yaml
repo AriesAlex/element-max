@@ -2,18 +2,13 @@ name: Build Element Max for Windows
 
 on:
     workflow_dispatch: {}
-    push:
-        tags: ["element-max-v*"]
 
 permissions:
     contents: write
-    actions: write
-    pages: write
-    id-token: write
 
 concurrency:
     group: element-max-windows
-    cancel-in-progress: true
+    cancel-in-progress: false
 
 jobs:
     build:
@@ -23,169 +18,32 @@ jobs:
                 shell: pwsh
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-              with:
-                  persist-credentials: false
 
-            - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
             - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
               with:
                   node-version-file: .node-version
-
-            - name: Set rolling build version
-              run: |
-                  $package = Get-Content apps/desktop/package.json -Raw | ConvertFrom-Json
-                  $baseVersion = $package.version.Split("-")[0]
-                  "ELEMENT_MAX_VERSION=$baseVersion-max.$env:GITHUB_RUN_NUMBER" | Out-File `
-                      -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-            - name: Build compatible Matrix JS SDK
-              working-directory: vendor/matrix-js-sdk
-              run: |
-                  corepack pnpm@11.2.2 install --frozen-lockfile --ignore-scripts
-                  corepack pnpm@11.2.2 build:compile
-                  corepack pnpm@11.2.2 build:types
-
-            - name: Build compatible Element Call widget
-              working-directory: vendor/element-call
-              run: |
-                  corepack pnpm@11.6.0 install --frozen-lockfile
-                  corepack pnpm@11.6.0 build:full --config vite-embedded.config.js
-
-            - name: Install Element dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Build Element webapp
-              run: |
-                  $env:Path = "$env:ProgramFiles\Git\bin;$env:Path"
-                  Copy-Item apps/desktop/element.max/config.json apps/web/config.json
-                  pnpm --filter element-web build
-
-            - name: Prepare Element Desktop
-              run: |
-                  Copy-Item -Recurse apps/web/webapp apps/desktop/webapp
-                  Copy-Item -Force apps/desktop/element.max/config.json apps/desktop/webapp/config.json
-                  pnpm --filter element-desktop asar-webapp
 
             - name: Install native build prerequisites
               run: |
                   choco install -y magicsplat-tcl-tk nasm --no-progress
                   "$env:USERPROFILE/AppData/Local/Apps/Tcl86/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
                   "C:/Program Files/NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-                  rustup target add x86_64-pc-windows-msvc
 
             - name: Configure MSVC
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
               with:
                   arch: x64
 
-            - name: Build native dependencies
-              working-directory: apps/desktop
-              run: pnpm run build:native --target x86_64-pc-windows-msvc
-
-            - name: Package Element Max
-              working-directory: apps/desktop
-              env:
-                  NX_DAEMON: "false"
-                  VARIANT_PATH: element.max/build.json
-              run: |
-                  $env:VERSION = $env:ELEMENT_MAX_VERSION
-                  pnpm run build --publish never -w squirrel
-
-            - name: Prepare landing and update feed
-              run: |
-                  $site = Join-Path $env:RUNNER_TEMP "element-max-pages"
-                  $feed = Join-Path $site "updates/win32/x64"
-                  New-Item -ItemType Directory -Force $site, $feed | Out-Null
-                  Copy-Item site/* $site -Recurse -Force
-
-                  $squirrelDirs = @(Get-ChildItem apps/desktop/dist -Directory -Filter "squirrel-windows*")
-                  if ($squirrelDirs.Count -ne 1) {
-                      throw "Expected exactly one Squirrel output directory, found $($squirrelDirs.Count)"
-                  }
-
-                  $releaseFiles = @(Get-ChildItem $squirrelDirs[0].FullName -File -Filter "RELEASES")
-                  $packages = @(Get-ChildItem $squirrelDirs[0].FullName -File -Filter "*-full.nupkg")
-                  if ($releaseFiles.Count -ne 1 -or $packages.Count -ne 1) {
-                      throw "Expected one RELEASES file and one full nupkg"
-                  }
-
-                  Copy-Item $releaseFiles[0].FullName $feed -Force
-                  Copy-Item $packages[0].FullName $feed -Force
-                  @{
-                      version = $env:ELEMENT_MAX_VERSION
-                      commit = $env:GITHUB_SHA
-                  } | ConvertTo-Json | Set-Content (Join-Path $site "version.json") -Encoding utf8
-
-            - name: Delete previous Element Max Actions artifacts
-              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
-              with:
-                  script: |
-                      for (const name of ["element-max-windows-x64", "github-pages"]) {
-                          const artifacts = await github.paginate(
-                              github.rest.actions.listArtifactsForRepo,
-                              {
-                                  owner: context.repo.owner,
-                                  repo: context.repo.repo,
-                                  name,
-                                  per_page: 100,
-                              },
-                          );
-
-                          for (const artifact of artifacts) {
-                              await github.rest.actions.deleteArtifact({
-                                  owner: context.repo.owner,
-                                  repo: context.repo.repo,
-                                  artifact_id: artifact.id,
-                              });
-                          }
-                      }
-
-            - name: Configure GitHub Pages
-              uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-
-            - name: Upload landing and update feed
-              uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
-              with:
-                  path: ${{ runner.temp }}/element-max-pages
-                  retention-days: 1
-
-            - name: Publish rolling installer
+            - name: Build and publish Element Max
               env:
                   GH_TOKEN: ${{ github.token }}
-                  GH_REPO: ${{ github.repository }}
-              run: |
-                  $releaseTag = "element-max-latest"
-                  $setups = @(
-                      Get-ChildItem apps/desktop/dist -Recurse -File -Filter "Element Max Setup*.exe"
-                  )
-                  if ($setups.Count -ne 1) {
-                      throw "Expected exactly one Element Max setup EXE, found $($setups.Count)"
-                  }
-
-                  $installer = Join-Path $env:RUNNER_TEMP "Element-Max-Setup.exe"
-                  Copy-Item $setups[0].FullName $installer -Force
-
-                  gh release view $releaseTag --repo $env:GH_REPO *> $null
-                  if ($LASTEXITCODE -eq 0) {
-                      gh release delete $releaseTag --repo $env:GH_REPO --cleanup-tag --yes
-                      if ($LASTEXITCODE -ne 0) { throw "Failed to delete the previous rolling release" }
-                  }
-
-                  gh release create $releaseTag $installer `
-                      --repo $env:GH_REPO `
-                      --target $env:GITHUB_SHA `
-                      --title "Element Max latest build" `
-                      --notes "Element Max $env:ELEMENT_MAX_VERSION for Windows x64. Existing Element Max installations update automatically." `
-                      --prerelease `
-                      --latest=false
+              run: ./scripts/release-element-max.ps1 -SkipPagesDeployment
 
     deploy-pages:
         needs: build
-        runs-on: ubuntu-24.04
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
-        steps:
-            - name: Deploy GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+        permissions:
+            actions: write
+            contents: read
+            id-token: write
+            pages: write
+        uses: ./.github/workflows/deploy-element-max-pages.yaml

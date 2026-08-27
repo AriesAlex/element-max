@@ -1,6 +1,6 @@
 # Инструкции для агентов
 
-Этот приватный репозиторий содержит кастомный Windows-клиент Element Max на базе стабильных релизов
+Этот публичный репозиторий содержит кастомный Windows-клиент Element Max на базе стабильных релизов
 `element-hq/element-web`. Цель форка — сохранить совместимость с используемым MatrixRTC и дать
 гибко настраиваемую трансляцию экрана с ручными шириной, высотой, FPS, битрейтом, кодеком,
 индикатором фактических параметров захвата и системным звуком Windows.
@@ -19,8 +19,8 @@
   совместимым Element Call. Он собирается до Element Call и подключается к нему через локальную `link:`
   dependency, чтобы git dependency не запускала невоспроизводимый package lifecycle.
 - `apps/desktop/element.max` — единственный build/runtime variant Element Max. В нём отдельные app ID,
-  protocol, product name и конфиг без официального auto-update URL, поэтому официальный Element не
-  перезаписывает форк и использует отдельный профиль.
+  protocol, product name и собственный update feed, поэтому официальный Element не перезаписывает форк,
+  а Element Max использует отдельный профиль и обновляется только из `AriesAlex/element-max`.
 - `apps/desktop/src/displayMediaCallback.ts` — единственный владелец правила добавления Windows
   `audio: "loopback"`; Electron main process только применяет его к фактическому display-media request.
 - `UPDATING.md` — источник истины по базовым upstream-тегам и процедуре обновления.
@@ -32,7 +32,7 @@ Element Call сначала собирается из `vendor/element-call`, з�
 
 ## Обновление из upstream
 
-- `origin` — подтверждённый приватный `AriesAlex/element-max`.
+- `origin` — публичный `AriesAlex/element-max`.
 - `upstream` — `https://github.com/element-hq/element-web.git`.
 - `element-call-upstream` — `https://github.com/element-hq/element-call.git`.
 - `matrix-js-sdk-upstream` — `https://github.com/matrix-org/matrix-js-sdk.git`.
@@ -64,13 +64,6 @@ corepack pnpm@11.20.0 --dir apps/desktop test:unit --run src/displayMediaCallbac
 corepack pnpm@11.20.0 --dir apps/desktop lint:types:src
 Copy-Item apps/desktop/element.max/config.json apps/web/config.json
 corepack pnpm@11.20.0 --filter element-web build
-Copy-Item -Recurse apps/web/webapp apps/desktop/webapp
-Copy-Item -Force apps/desktop/element.max/config.json apps/desktop/webapp/config.json
-corepack pnpm@11.20.0 --dir apps/desktop asar-webapp
-corepack pnpm@11.20.0 --dir apps/desktop build:native --target x86_64-pc-windows-msvc
-$env:NX_DAEMON = "false"
-$env:VARIANT_PATH = "element.max/build.json"
-corepack pnpm@11.20.0 --dir apps/desktop run build --publish never -w squirrel
 ```
 
 Matrix JS SDK устанавливается без lifecycle-скриптов, затем compile и types запускаются явно ровно один
@@ -80,7 +73,8 @@ Matrix JS SDK устанавливается без lifecycle-скриптов, 
 Полный upstream desktop suite сейчас содержит Windows-неспецифичные ожидания Unix-разделителей путей,
 поэтому для этого patch запускаются два затронутых desktop test-файла и проверка типов.
 Нативной Windows-сборке нужны MSVC x64 environment, Rust target `x86_64-pc-windows-msvc`, native Windows
-Perl, Tcl и NASM. В CI их настраивает единственный Windows workflow; локально не подменяй MSVC `link.exe`
+Perl, Tcl и NASM. Локальный release-скрипт сам входит в установленный Visual Studio DevShell и проверяет
+инструменты; ручной Windows workflow устанавливает недостающие Tcl и NASM. Не подменяй MSVC `link.exe`
 одноимённым Unix tool из Git `usr/bin`.
 
 - После изменений screen share обязательно проверь произвольные ручные запросы, включая 3840×2160@120
@@ -90,10 +84,17 @@ Perl, Tcl и NASM. В CI их настраивает единственный Wi
   содержать системный звук без голоса самого Element.
 - Electron должен оставаться не ниже версии, где исправлено применение `restrictOwnAudio` к display
   media. При обновлении Electron повторно проверяй loopback и отсутствие эха звонка.
-- `.github/workflows/build-element-max-windows.yaml` собирает только x64 Squirrel installer. Workflow
-  удаляет прежние Actions artifacts `element-max-windows-x64`, затем заменяет rolling prerelease
-  `element-max-latest`, чтобы не расходовать Actions storage. В release должен оставаться ровно один
-  setup `.exe`; отдельные SHA/checksum-assets запрещены.
+- Штатный релиз собирается локально на Windows командой `./scripts/release-element-max.ps1` только из
+  чистого и уже отправленного `main`. Скрипт полностью пересобирает зависимости, webapp, native-модули и
+  x64 Squirrel package, проверяет `RELEASES`, обновляет rolling prerelease `element-max-latest` и запускает
+  лёгкий Pages deployment. В release должны оставаться только `Element-Max-Setup.exe`, `RELEASES` и один
+  `*-full.nupkg`; отдельные SHA/checksum-assets запрещены.
+- `.github/workflows/build-element-max-windows.yaml` — только ручной запасной путь через
+  `workflow_dispatch`; не добавляй запуск по push, merge, tag или расписанию. Обычные commits и merge в
+  `main` не должны запускать тяжёлую Windows-сборку на GitHub.
+- `.github/workflows/deploy-element-max-pages.yaml` не компилирует приложение: он вручную или после
+  ручной fallback-сборки скачивает готовый Squirrel feed из rolling release, удаляет прежние
+  `github-pages` artifacts и публикует landing/feed с retention один день.
 - Локальные `apps/web/config.json`, `webapp`, `dist`, `node_modules` и прочие результаты сборки не
   коммить. Временные исследовательские файлы держи вне репозитория.
 
@@ -126,7 +127,6 @@ Perl, Tcl и NASM. В CI их настраивает единственный Wi
 ## Git, приватность и секреты
 
 - Перед commit проверь `git status --short` и полный diff. Не включай generated или unrelated файлы.
-- Репозиторий подтверждён как приватный. Не бойся коммитить и пушить `.env`, credentials, signing
-  material или другие секреты, если они действительно принадлежат переносимому source of truth этого
-  репозитория и delivery входит в задачу; отдельное согласование каждого секрета не требуется.
+- Репозиторий публичный. Не коммить и не пушить `.env`, credentials, signing material, токены, приватные
+  ключи и другие секреты.
 - Никогда не печатай значения секретов в логах, diff, ответах, issues, pull requests или комментариях.

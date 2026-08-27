@@ -1,0 +1,89 @@
+name: Deploy Element Max Pages
+
+on:
+    workflow_call: {}
+    workflow_dispatch: {}
+
+permissions:
+    actions: write
+    contents: read
+    id-token: write
+    pages: write
+
+concurrency:
+    group: element-max-pages
+    cancel-in-progress: true
+
+jobs:
+    deploy:
+        runs-on: ubuntu-24.04
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+              with:
+                  persist-credentials: false
+
+            - name: Delete previous Pages artifacts
+              uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+              with:
+                  script: |
+                      const artifacts = await github.paginate(
+                          github.rest.actions.listArtifactsForRepo,
+                          {
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              name: "github-pages",
+                              per_page: 100,
+                          },
+                      );
+
+                      for (const artifact of artifacts) {
+                          await github.rest.actions.deleteArtifact({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              artifact_id: artifact.id,
+                          });
+                      }
+
+            - name: Prepare landing and update feed
+              shell: pwsh
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  $pages = Join-Path $env:RUNNER_TEMP "element-max-pages"
+                  $feed = Join-Path $pages "updates/win32/x64"
+                  New-Item -ItemType Directory -Force $pages, $feed | Out-Null
+                  Copy-Item site/* $pages -Recurse -Force
+
+                  gh release download element-max-latest `
+                      --repo $env:GITHUB_REPOSITORY `
+                      --pattern RELEASES `
+                      --pattern "*-full.nupkg" `
+                      --dir $feed
+
+                  $releaseFiles = @(Get-ChildItem $feed -File -Filter RELEASES)
+                  $packages = @(Get-ChildItem $feed -File -Filter "*-full.nupkg")
+                  if ($releaseFiles.Count -ne 1 -or $packages.Count -ne 1) {
+                      throw "Expected one RELEASES file and one full nupkg"
+                  }
+
+                  $package = Get-Content apps/desktop/package.json -Raw | ConvertFrom-Json
+                  @{
+                      version = $package.version
+                      commit = $env:GITHUB_SHA
+                  } | ConvertTo-Json | Set-Content (Join-Path $pages "version.json") -Encoding utf8
+
+            - name: Configure GitHub Pages
+              uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+            - name: Upload landing and update feed
+              uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+              with:
+                  path: ${{ runner.temp }}/element-max-pages
+                  retention-days: 1
+
+            - name: Deploy GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

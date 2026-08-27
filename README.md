@@ -23,7 +23,7 @@ Element Max is a Windows-focused [Element Web](https://github.com/element-hq/ele
 
 ## Releases
 
-The Windows workflow builds one installer, replaces the `element-max-latest` prerelease, deploys the matching Squirrel update feed and landing page, and deletes superseded Actions artifacts. Build versions increase on every workflow run so existing installations can update normally.
+Windows releases are built locally from a clean, pushed `main` with `./scripts/release-element-max.ps1`. The script replaces the three assets in the `element-max-latest` prerelease and dispatches a lightweight Pages workflow for the landing and Squirrel feed. The full GitHub-hosted build remains available as a manual fallback and never runs on pushes or merges.
 
 ## Upstream
 

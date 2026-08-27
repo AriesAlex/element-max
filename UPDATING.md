@@ -1,7 +1,7 @@
 # Updating Element Max
 
-This private repository keeps a small high-quality screen-sharing patch on top of stable Element Web tags.
-`origin` is the private Element Max repository, `upstream` is `https://github.com/element-hq/element-web.git`,
+This public repository keeps a small high-quality screen-sharing patch on top of stable Element Web tags.
+`origin` is the Element Max repository, `upstream` is `https://github.com/element-hq/element-web.git`,
 and `element-call-upstream` is `https://github.com/element-hq/element-call.git`.
 
 The current Element base is tag `v1.12.26`, commit `c43ef70b55030287677d884f8a3073808c4301d9`.
@@ -61,4 +61,4 @@ git subtree pull --prefix vendor/matrix-js-sdk matrix-js-sdk-upstream <compatibl
 
 After each update, revise the base tags and commits recorded above, review the complete diff, build the
 embedded widget, run the focused desktop and Element Call tests, build the Windows installer, and test an
-actual encrypted MatrixRTC screen share with system audio.
+actual MatrixRTC screen share with system audio.
