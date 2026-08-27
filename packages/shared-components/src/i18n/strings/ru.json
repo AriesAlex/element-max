@@ -46,7 +46,12 @@
     },
     "menus": {
         "user_menu": {
-            "create_an_account": "Создать учетную запись"
+            "clear_status": "Очистить",
+            "create_an_account": "Создать учётную запись",
+            "got_an_account": "Уже есть учётная запись?",
+            "manage_account": "Управление учётной записью",
+            "sign_in": "Войти",
+            "title": "Меню пользователя"
         }
     },
     "notifications": {
@@ -172,6 +177,36 @@
         "n_minutes_ago": "%(num)s минут назад"
     },
     "timeline": {
+        "call_tile": {
+            "declined": {
+                "call_declined": "Звонок отклонён",
+                "call_declined_by_us": "Вы отклонили звонок"
+            },
+            "ongoing": {
+                "common": {
+                    "call_started_by": "%(startedByDisplayName)s начал(а) звонок",
+                    "join_button": "Присоединиться"
+                },
+                "dm": {
+                    "call_started": "Звонок начался",
+                    "title": "Идёт звонок"
+                },
+                "room": {
+                    "join_count": {
+                        "one": "Присоединился %(count)s участник",
+                        "other": "Присоединились %(count)s участников"
+                    },
+                    "title": "Идёт групповой звонок"
+                }
+            },
+            "tombstone": {
+                "room": {
+                    "title": "Групповой звонок завершён"
+                }
+            },
+            "video_call_title": "Видеозвонок",
+            "voice_call_title": "Голосовой звонок"
+        },
         "decryption_failure": {
             "blocked": "Отправитель заблокировал получение этого сообщения, поскольку ваше устройство не проверено.",
             "historical_event_no_key_backup": "История сообщений недоступна на этом устройстве",
@@ -201,6 +236,13 @@
         },
         "message_timestamp_received_at": "Получено в %(dateTime)s",
         "message_timestamp_sent_at": "Отправлено в %(dateTime)s"
+    },
+    "user_menu": {
+        "link_new_device": "Привязать новое устройство",
+        "open_feedback": "Обратная связь",
+        "open_home": "Главная",
+        "open_security": "Безопасность и конфиденциальность",
+        "open_settings": "Все настройки"
     },
     "widget": {
         "context_menu": {

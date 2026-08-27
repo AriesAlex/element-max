@@ -9,7 +9,7 @@
         }
     },
     "brand": "Element Max",
-    "default_theme": "element-max-dark",
+    "default_theme": "dark",
     "element_max": {
         "disable_e2ee": true
     },

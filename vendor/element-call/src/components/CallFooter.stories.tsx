@@ -221,6 +221,59 @@ export const AudioVideoEnabled: Story = {
   },
 };
 
+export const ScreenShareSettings: Story = {
+  ...Default,
+  args: {
+    ...Default.args,
+    screenShareStatus: null,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      canvas.getByRole("button", { name: "Screen sharing settings" }),
+    );
+
+    const document = canvasElement.ownerDocument;
+    const systemAudio = within(document.body).getByRole("menuitemcheckbox", {
+      name: "Share system audio",
+    });
+    const input = systemAudio.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+    const toggle = input?.nextElementSibling;
+
+    await expect(input).toBeChecked();
+    await expect(toggle).not.toBeNull();
+    await expect(getComputedStyle(toggle!).backgroundColor).toBe(
+      "rgb(91, 140, 255)",
+    );
+
+    const colorProbe = document.createElement("div");
+    document.body.append(colorProbe);
+    const expectResolvedColor = async (
+      token: string,
+      expected: string,
+    ): Promise<void> => {
+      colorProbe.style.backgroundColor = `var(${token})`;
+      await expect(getComputedStyle(colorProbe).backgroundColor).toBe(expected);
+    };
+
+    await expectResolvedColor(
+      "--cpd-color-bg-accent-hovered",
+      "rgb(117, 160, 255)",
+    );
+    await expectResolvedColor(
+      "--cpd-color-bg-accent-pressed",
+      "rgb(67, 126, 217)",
+    );
+    await expectResolvedColor(
+      "--cpd-color-border-focused",
+      "rgb(91, 140, 255)",
+    );
+    colorProbe.remove();
+  },
+};
+
 /** used to test switching to grid mode */
 export const SpotlightMode: Story = {
   ...Default,

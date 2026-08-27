@@ -8,3 +8,79 @@
 @import "../../../../res/css/_components.pcss" layer(app-web);
 @import url("highlight.js/styles/atom-one-dark.min.css") layer(app-web);
 @import url("github-markdown-css/github-markdown-dark.css") layer(app-web);
+
+@layer compound-tokens {
+    .cpd-theme-dark.cpd-theme-dark {
+        --cpd-color-theme-bg: #1b1e26;
+        --cpd-color-gray-100: #111319;
+        --cpd-color-gray-200: #16181e;
+        --cpd-color-gray-300: #1d2028;
+        --cpd-color-gray-400: #252a34;
+        --cpd-color-gray-500: #303642;
+        --cpd-color-gray-600: #3c4351;
+        --cpd-color-gray-700: #4c5565;
+        --cpd-color-gray-800: #657184;
+        --cpd-color-gray-900: #8792a5;
+        --cpd-color-gray-1000: #a1aabc;
+        --cpd-color-gray-1100: #b7bfce;
+        --cpd-color-gray-1200: #cdd3dd;
+        --cpd-color-gray-1300: #e1e5ec;
+        --cpd-color-gray-1400: #f2f4f7;
+        --cpd-color-accent-100: #0d1630;
+        --cpd-color-accent-200: #111f42;
+        --cpd-color-accent-300: #172a55;
+        --cpd-color-accent-400: #1e376b;
+        --cpd-color-accent-500: #264783;
+        --cpd-color-accent-600: #2f589e;
+        --cpd-color-accent-700: #386bbb;
+        --cpd-color-accent-800: #437ed9;
+        --cpd-color-accent-900: #5b8cff;
+        --cpd-color-accent-1000: #75a0ff;
+        --cpd-color-accent-1100: #8eb0ff;
+        --cpd-color-accent-1200: #b2c9ff;
+        --cpd-color-accent-1300: #d5e2ff;
+        --cpd-color-accent-1400: #edf3ff;
+        --cpd-color-text-action-accent: var(--cpd-color-accent-1000);
+        --cpd-color-text-link-external: var(--cpd-color-accent-1100);
+        --cpd-color-text-badge-accent: var(--cpd-color-accent-1100);
+        --cpd-color-text-on-solid-primary: #ffffff;
+        --cpd-color-bg-action-primary-rest: var(--cpd-color-accent-900);
+        --cpd-color-bg-action-primary-hovered: var(--cpd-color-accent-1000);
+        --cpd-color-bg-action-primary-pressed: var(--cpd-color-accent-800);
+        --cpd-color-bg-accent-rest: var(--cpd-color-accent-900);
+        --cpd-color-bg-accent-hovered: var(--cpd-color-accent-1000);
+        --cpd-color-bg-accent-pressed: var(--cpd-color-accent-800);
+        --cpd-color-bg-accent-selected: rgb(91 140 255 / 18%);
+        --cpd-color-bg-accent-subtle: var(--cpd-color-accent-200);
+        --cpd-color-bg-badge-accent: var(--cpd-color-accent-400);
+        --cpd-color-border-focused: var(--cpd-color-accent-900);
+        --cpd-color-border-accent-subtle: var(--cpd-color-accent-700);
+        --cpd-color-border-accent-primary: var(--cpd-color-accent-900);
+        --cpd-color-icon-accent-tertiary: var(--cpd-color-accent-800);
+        --cpd-color-icon-accent-primary: var(--cpd-color-accent-900);
+        --cpd-color-icon-on-solid-primary: #ffffff;
+        --cpd-color-gradient-action-stop1: var(--cpd-color-accent-1100);
+        --cpd-color-gradient-action-stop2: var(--cpd-color-accent-900);
+        --cpd-color-gradient-action-stop3: var(--cpd-color-accent-700);
+        --cpd-color-gradient-action-stop4: var(--cpd-color-accent-500);
+        --cpd-color-gradient-subtle-stop1: rgb(91 140 255 / 26%);
+        --cpd-color-gradient-subtle-stop2: rgb(91 140 255 / 18%);
+        --cpd-color-gradient-subtle-stop3: rgb(91 140 255 / 13%);
+        --cpd-color-gradient-subtle-stop4: rgb(91 140 255 / 9%);
+        --cpd-color-gradient-subtle-stop5: rgb(91 140 255 / 6%);
+    }
+}
+
+@layer app-web {
+    .mx_SpacePanel {
+        background-color: #111319;
+        border-right-color: #252a34;
+    }
+
+    .mx_LeftPanel,
+    .mx_LeftPanel .mx_LeftPanel_roomListContainer,
+    .mx_RoomListPanel,
+    .mx_RightPanel {
+        background-color: #16181e;
+    }
+}

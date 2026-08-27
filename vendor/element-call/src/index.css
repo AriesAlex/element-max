@@ -13,10 +13,8 @@ Please see LICENSE in the repository root for full details.
 @import url("@fontsource/inter/700.css");
 @import url("@fontsource/inconsolata/400.css");
 @import url("@fontsource/inconsolata/700.css");
-
 @import url("normalize.css/normalize.css") layer(normalize);
-@import url("@vector-im/compound-design-tokens/assets/web/css/compound-design-tokens.css")
-layer(compound);
+@import url("@vector-im/compound-design-tokens/assets/web/css/compound-design-tokens.css") layer(compound);
 @import url("@vector-im/compound-web/dist/style.css") layer(compound.components);
 
 :root {
@@ -28,7 +26,6 @@ layer(compound);
   --font-size-title: calc(24px * var(--font-scale));
   --font-size-headline: calc(32px * var(--font-scale));
 
-  --cpd-color-border-accent: var(--cpd-color-green-800);
   /* The distance to inset non-full-width content from the edge of the window
   along the inline axis. This ramps up from 16px for typical mobile windows, to
   96px for typical desktop windows, and accounts for the safe area. */
@@ -46,23 +43,87 @@ layer(compound);
         max(var(--cpd-space-4x), calc((100vw - 900px) / 3))
       )
   );
-  --small-drop-shadow: 0px 1.2px 2.4px 0px rgba(0, 0, 0, 0.15);
+  --small-drop-shadow: 0px 1.2px 2.4px 0px rgb(0, 0, 0, 0.15);
   --big-drop-shadow: 0px 0px 24px 0px #1b1d221a;
-  --subtle-drop-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-
+  --subtle-drop-shadow: 0px 1px 2px 0px rgb(16, 24, 40, 0.05);
   --call-view-overlay-layer: 1;
   --call-view-header-footer-layer: 2;
 }
 
 :root,
 [class*="cpd-theme-"] {
+  --cpd-color-text-action-accent: var(--cpd-color-accent-1000);
+  --cpd-color-text-badge-accent: var(--cpd-color-accent-1100);
+  --cpd-color-bg-accent-rest: var(--cpd-color-accent-900);
+  --cpd-color-bg-accent-hovered: var(--cpd-color-accent-1000);
+  --cpd-color-bg-accent-pressed: var(--cpd-color-accent-800);
+  --cpd-color-bg-accent-selected: rgb(91 140 255 / 18%);
+  --cpd-color-bg-accent-subtle: var(--cpd-color-accent-200);
+  --cpd-color-bg-badge-accent: var(--cpd-color-accent-400);
+  --cpd-color-border-focused: var(--cpd-color-accent-900);
+  --cpd-color-border-accent: var(--cpd-color-accent-900);
+  --cpd-color-border-accent-subtle: var(--cpd-color-accent-700);
+  --cpd-color-border-accent-primary: var(--cpd-color-accent-900);
+  --cpd-color-icon-accent-tertiary: var(--cpd-color-accent-800);
+  --cpd-color-icon-accent-primary: var(--cpd-color-accent-900);
+  --cpd-color-gradient-action-stop1: var(--cpd-color-accent-1100);
+  --cpd-color-gradient-action-stop2: var(--cpd-color-accent-900);
+  --cpd-color-gradient-action-stop3: var(--cpd-color-accent-700);
+  --cpd-color-gradient-action-stop4: var(--cpd-color-accent-500);
+  --cpd-color-gradient-subtle-stop1: rgb(91 140 255 / 26%);
+  --cpd-color-gradient-subtle-stop2: rgb(91 140 255 / 18%);
+  --cpd-color-gradient-subtle-stop3: rgb(91 140 255 / 13%);
+  --cpd-color-gradient-subtle-stop4: rgb(91 140 255 / 9%);
+  --cpd-color-gradient-subtle-stop5: rgb(91 140 255 / 6%);
   --video-tile-background: var(--cpd-color-bg-subtle-secondary);
 }
 
+:root,
 .cpd-theme-dark {
-  --cpd-color-border-accent: var(--cpd-color-green-1100);
+  --cpd-color-accent-100: #0d1630;
+  --cpd-color-accent-200: #111f42;
+  --cpd-color-accent-300: #172a55;
+  --cpd-color-accent-400: #1e376b;
+  --cpd-color-accent-500: #264783;
+  --cpd-color-accent-600: #2f589e;
+  --cpd-color-accent-700: #386bbb;
+  --cpd-color-accent-800: #437ed9;
+  --cpd-color-accent-900: #5b8cff;
+  --cpd-color-accent-1000: #75a0ff;
+  --cpd-color-accent-1100: #8eb0ff;
+  --cpd-color-accent-1200: #b2c9ff;
+  --cpd-color-accent-1300: #d5e2ff;
+  --cpd-color-accent-1400: #edf3ff;
   --stopgap-color-on-solid-accent: var(--cpd-color-text-primary);
-  --stopgap-background-85: rgba(16, 19, 23, 0.85);
+  --stopgap-background-85: rgb(16, 19, 23, 0.85);
+}
+
+.cpd-theme-light {
+  --cpd-color-accent-100: #f7f9ff;
+  --cpd-color-accent-200: #eef3ff;
+  --cpd-color-accent-300: #dfe8ff;
+  --cpd-color-accent-400: #ccdcff;
+  --cpd-color-accent-500: #b5ccff;
+  --cpd-color-accent-600: #96b5ff;
+  --cpd-color-accent-700: #789fff;
+  --cpd-color-accent-800: #5b8cff;
+  --cpd-color-accent-900: #4f7fe8;
+  --cpd-color-accent-1000: #3e6fd2;
+  --cpd-color-accent-1100: #2f5db9;
+  --cpd-color-accent-1200: #254a96;
+  --cpd-color-accent-1300: #1d3a74;
+  --cpd-color-accent-1400: #152a54;
+  --cpd-color-bg-accent-pressed: var(--cpd-color-accent-1100);
+  --cpd-color-bg-accent-selected: rgb(79 127 232 / 14%);
+  --cpd-color-gradient-action-stop1: var(--cpd-color-accent-500);
+  --cpd-color-gradient-action-stop2: var(--cpd-color-accent-700);
+  --cpd-color-gradient-action-stop3: var(--cpd-color-accent-900);
+  --cpd-color-gradient-action-stop4: var(--cpd-color-accent-1100);
+  --cpd-color-gradient-subtle-stop1: rgb(79 127 232 / 18%);
+  --cpd-color-gradient-subtle-stop2: rgb(79 127 232 / 13%);
+  --cpd-color-gradient-subtle-stop3: rgb(79 127 232 / 9%);
+  --cpd-color-gradient-subtle-stop4: rgb(79 127 232 / 6%);
+  --cpd-color-gradient-subtle-stop5: rgb(79 127 232 / 3%);
 }
 
 body {
@@ -100,7 +161,7 @@ we use this for mobile pip webviews */
   width: 100%;
 }
 
-/* We use this to not render the page at all until we know the theme.*/
+/* We use this to not render the page at all until we know the theme. */
 .no-theme {
   opacity: 0;
 }

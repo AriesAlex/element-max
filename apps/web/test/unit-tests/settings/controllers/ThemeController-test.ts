@@ -35,6 +35,14 @@ describe("ThemeController", () => {
         ).toEqual(DEFAULT_THEME);
     });
 
+    it("migrates the removed Element Max theme to the new dark default", () => {
+        const controller = new ThemeController();
+
+        expect(
+            controller.getValueOverride(SettingLevel.DEVICE, "$room:server", "element-max-dark", SettingLevel.DEVICE),
+        ).toEqual("dark");
+    });
+
     it("returns null when value is a valid theme", () => {
         const controller = new ThemeController();
 

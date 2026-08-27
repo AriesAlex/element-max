@@ -29,7 +29,7 @@ import ThemeWatcher from "./settings/watchers/ThemeWatcher";
 import { FontWatcher } from "./settings/watchers/FontWatcher";
 import { applyStoredThemeOverrides } from "./utils/elementMaxTheme";
 
-export const DEFAULT_THEME = "light";
+export const DEFAULT_THEME = "dark";
 const HIGH_CONTRAST_THEMES: Record<string, string> = {
     light: "light-high-contrast",
 };
@@ -88,7 +88,7 @@ export function isHighContrastTheme(theme: string): boolean {
 }
 
 export function isDarkTheme(theme: string): boolean {
-    return theme === "dark" || theme === "dark-hc" || theme === "element-max-dark";
+    return theme === "dark" || theme === "dark-hc";
 }
 
 export function enumerateThemes(): { [key: string]: string } {
@@ -96,7 +96,6 @@ export function enumerateThemes(): { [key: string]: string } {
         "light": _t("common|light"),
         "light-high-contrast": _t("theme|light_high_contrast"),
         "dark": _t("common|dark"),
-        "element-max-dark": "Element Max",
     };
     const customThemes = SettingsStore.getValue("custom_themes") || [];
     const customThemeNames: Record<string, string> = {};
