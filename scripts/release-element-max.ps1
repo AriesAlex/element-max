@@ -252,7 +252,7 @@ try {
         Write-Host "Updating rolling GitHub release"
         Invoke-External -FilePath $ghPath -Arguments @("release", "upload", $releaseTag, $releasePackage, $stableSetup, "--clobber", "--repo", $repo) -WorkingDirectory $repoRoot
         Invoke-External -FilePath $ghPath -Arguments @("release", "upload", $releaseTag, $releaseManifest, "--clobber", "--repo", $repo) -WorkingDirectory $repoRoot
-        Invoke-External -FilePath $ghPath -Arguments @("release", "edit", $releaseTag, "--title", "Element Max $version", "--notes", $releaseNotes, "--prerelease", "--latest=false", "--repo", $repo) -WorkingDirectory $repoRoot
+        Invoke-External -FilePath $ghPath -Arguments @("release", "edit", $releaseTag, "--target", $commit, "--title", "Element Max $version", "--notes", $releaseNotes, "--prerelease", "--latest=false", "--repo", $repo) -WorkingDirectory $repoRoot
     } else {
         Write-Host "Creating rolling GitHub release"
         Invoke-External -FilePath $ghPath -Arguments @("release", "create", $releaseTag, $releasePackage, $stableSetup, $releaseManifest, "--target", $commit, "--title", "Element Max $version", "--notes", $releaseNotes, "--prerelease", "--latest=false", "--repo", $repo) -WorkingDirectory $repoRoot
