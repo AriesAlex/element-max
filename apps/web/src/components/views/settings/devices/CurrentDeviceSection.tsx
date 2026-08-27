@@ -30,7 +30,7 @@ interface Props {
     // excludes current session
     otherSessionsCount: number;
     setPushNotifications: (deviceId: string, enabled: boolean) => Promise<void>;
-    onVerifyCurrentDevice: () => void;
+    onVerifyCurrentDevice?: () => void;
     onSignOutCurrentDevice: () => void;
     signOutAllOtherSessions?: () => void;
     saveDeviceName: (deviceName: string) => Promise<void>;
@@ -134,7 +134,7 @@ const CurrentDeviceSection: React.FC<Props> = ({
                             accountManagementActionsSupported={accountManagementActionsSupported}
                             isCurrentDevice
                         />
-                    ) : (
+                    ) : onVerifyCurrentDevice ? (
                         <>
                             <br />
                             <DeviceVerificationStatusCard
@@ -143,7 +143,7 @@ const CurrentDeviceSection: React.FC<Props> = ({
                                 isCurrentDevice
                             />
                         </>
-                    )}
+                    ) : null}
                 </>
             )}
         </SettingsSubsection>

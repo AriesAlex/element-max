@@ -13,6 +13,7 @@ import { INACTIVE_DEVICE_AGE_DAYS, isDeviceInactive } from "../../../../componen
 import { type ExtendedDevice } from "../../../../components/views/settings/devices/types";
 import { formatDate, formatRelativeTime } from "../../../../DateUtils";
 import { _t } from "../../../../languageHandler";
+import { isE2EEDisabled } from "../../../../utils/crypto/isE2EEDisabled";
 
 interface Props {
     device: ExtendedDevice;
@@ -53,6 +54,7 @@ const DeviceMetaDatum: React.FC<{ value: string | React.ReactNode; id: string }>
     value ? <span data-testid={`device-metadata-${id}`}>{value}</span> : null;
 
 export const DeviceMetaData: React.FC<Props> = ({ device }) => {
+    const e2eeDisabled = isE2EEDisabled();
     const inactive = getInactiveMetadata(device);
     const lastActivity =
         device.last_seen_ts && `${_t("settings|sessions|last_activity")} ${formatLastActivity(device.last_seen_ts)}`;
@@ -61,7 +63,7 @@ export const DeviceMetaData: React.FC<Props> = ({ device }) => {
     const metadata = inactive
         ? [inactive, { id: "lastSeenIp", value: device.last_seen_ip }]
         : [
-              { id: "isVerified", value: verificationStatus },
+              { id: "isVerified", value: e2eeDisabled ? undefined : verificationStatus },
               { id: "lastActivity", value: lastActivity },
               { id: "lastSeenIp", value: device.last_seen_ip },
               { id: "deviceId", value: device.device_id },

@@ -2,6 +2,6 @@
     "appId": "ru.ariex.elementmax",
     "name": "element-max",
     "productName": "Element Max",
-    "description": "Element with high-quality screen sharing and Windows system audio",
+    "description": "Element with unrestricted screen sharing, system audio, and live theme editing",
     "protocols": ["ru.ariex.elementmax", "element-max"]
 }

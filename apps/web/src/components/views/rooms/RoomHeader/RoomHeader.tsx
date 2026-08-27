@@ -57,6 +57,7 @@ import { LocalRoom } from "../../../../models/LocalRoom.ts";
 import { useIsEncrypted } from "../../../../hooks/useIsEncrypted.ts";
 import { useUserStatus } from "../../../../hooks/useUserStatus.ts";
 import { SDKContext } from "../../../../contexts/SDKContext.ts";
+import { isE2EEDisabled } from "../../../../utils/crypto/isE2EEDisabled.ts";
 
 function RoomHeaderButtons({
     room,
@@ -452,6 +453,7 @@ export default function RoomHeader({
     const dmUserStatus = useUserStatus(dmMember?.userId);
     const isRoomEncrypted = useIsEncrypted(sdkContext.client!, room);
     const e2eStatus = useEncryptionStatus(sdkContext.client!, room);
+    const showEncryptionState = !isE2EEDisabled();
     const askToJoinEnabled = useFeatureEnabled("feature_ask_to_join");
     const onAvatarClick = (): void => {
         defaultDispatcher.dispatch({
@@ -515,7 +517,7 @@ export default function RoomHeader({
                                 </Tooltip>
                             )}
 
-                            {isDirectMessage && e2eStatus === E2EStatus.Verified && (
+                            {showEncryptionState && isDirectMessage && e2eStatus === E2EStatus.Verified && (
                                 <Tooltip label={_t("common|verified")} placement="right">
                                     <VerifiedIcon
                                         width="16px"
@@ -526,7 +528,7 @@ export default function RoomHeader({
                                 </Tooltip>
                             )}
 
-                            {isDirectMessage && e2eStatus === E2EStatus.Warning && (
+                            {showEncryptionState && isDirectMessage && e2eStatus === E2EStatus.Warning && (
                                 <Tooltip label={_t("room|header_untrusted_label")} placement="right">
                                     <ErrorIcon
                                         width="16px"
@@ -537,7 +539,7 @@ export default function RoomHeader({
                                 </Tooltip>
                             )}
 
-                            {isRoomEncrypted && historyVisibilityIcon(historyVisibility)}
+                            {showEncryptionState && isRoomEncrypted && historyVisibilityIcon(historyVisibility)}
                         </Text>
                     </Box>
                 </button>

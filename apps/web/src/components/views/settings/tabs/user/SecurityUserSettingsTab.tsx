@@ -34,6 +34,7 @@ import { SettingsSubsection, SettingsSubsectionText } from "../../shared/Setting
 import { useOwnDevices } from "../../devices/useOwnDevices";
 import { DiscoverySettings } from "../../discovery/DiscoverySettings";
 import SetIntegrationManager from "../../SetIntegrationManager";
+import { isE2EEDisabled } from "../../../../../utils/crypto/isE2EEDisabled";
 
 interface IIgnoredUserProps {
     userId: string;
@@ -287,7 +288,8 @@ export default class SecurityUserSettingsTab extends React.Component<EmptyObject
     }
 
     public render(): React.ReactNode {
-        const secureBackup = <SecureBackup />;
+        const e2eeDisabled = isE2EEDisabled();
+        const secureBackup = e2eeDisabled ? null : <SecureBackup />;
 
         const eventIndex = (
             <SettingsSubsection heading={_t("settings|security|message_search_section")}>
@@ -296,7 +298,7 @@ export default class SecurityUserSettingsTab extends React.Component<EmptyObject
         );
 
         let warning;
-        if (!privateShouldBeEncrypted(MatrixClientPeg.safeGet())) {
+        if (!e2eeDisabled && !privateShouldBeEncrypted(MatrixClientPeg.safeGet())) {
             warning = (
                 <div className="mx_SecurityUserSettingsTab_warning">
                     <WarningIcon />
@@ -373,10 +375,14 @@ export default class SecurityUserSettingsTab extends React.Component<EmptyObject
             <SettingsTab>
                 {warning}
                 <SetIntegrationManager />
-                <SettingsSection heading={_t("settings|security|encryption_section")}>
-                    {secureBackup}
-                    {eventIndex}
-                </SettingsSection>
+                {e2eeDisabled ? (
+                    <SettingsSection>{eventIndex}</SettingsSection>
+                ) : (
+                    <SettingsSection heading={_t("settings|security|encryption_section")}>
+                        {secureBackup}
+                        {eventIndex}
+                    </SettingsSection>
+                )}
                 {privacySection}
                 {advancedSection}
             </SettingsTab>

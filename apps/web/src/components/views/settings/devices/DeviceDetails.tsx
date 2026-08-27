@@ -115,11 +115,13 @@ const DeviceDetails: React.FC<Props> = ({
         <div className={classNames("mx_DeviceDetails", className)} data-testid={`device-detail-${device.device_id}`}>
             <section className="mx_DeviceDetails_section">
                 <DeviceDetailHeading device={device} saveDeviceName={saveDeviceName} />
-                <DeviceVerificationStatusCard
-                    device={device}
-                    onVerifyDevice={onVerifyDevice}
-                    isCurrentDevice={isCurrentDevice}
-                />
+                {onVerifyDevice && (
+                    <DeviceVerificationStatusCard
+                        device={device}
+                        onVerifyDevice={onVerifyDevice}
+                        isCurrentDevice={isCurrentDevice}
+                    />
+                )}
             </section>
             {!accountManagementEndpoint && (
                 <section className="mx_DeviceDetails_section">

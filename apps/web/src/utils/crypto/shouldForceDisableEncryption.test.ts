@@ -8,10 +8,11 @@ Please see LICENSE files in the repository root for full details.
 
 // @vitest-environment happy-dom
 
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { getMockClientWithEventEmitter } from "test-utils";
 
 import { shouldForceDisableEncryption } from "./shouldForceDisableEncryption";
+import SdkConfig from "../../SdkConfig";
 
 describe("shouldForceDisableEncryption()", () => {
     const mockClient = getMockClientWithEventEmitter({
@@ -19,7 +20,16 @@ describe("shouldForceDisableEncryption()", () => {
     });
 
     beforeEach(() => {
+        SdkConfig.reset();
+        SdkConfig.put({});
         mockClient.getClientWellKnown.mockReturnValue(undefined);
+    });
+
+    afterEach(() => SdkConfig.reset());
+
+    it("should return true when Element Max disables E2EE", () => {
+        SdkConfig.put({ element_max: { disable_e2ee: true } });
+        expect(shouldForceDisableEncryption(mockClient)).toEqual(true);
     });
 
     it("should return false when there is no e2ee well known", () => {

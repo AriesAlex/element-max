@@ -64,6 +64,7 @@ import { MessageComposerUrlPreviewViewModel } from "../../../viewmodels/composer
 import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext";
 import PlatformPeg from "../../../PlatformPeg";
 import { useSettingValue } from "../../../hooks/useSettings";
+import { isE2EEDisabled } from "../../../utils/crypto/isE2EEDisabled";
 
 // The prefix used when persisting editor drafts to localstorage.
 export const WYSIWYG_EDITOR_STATE_STORAGE_PREFIX = "mx_wysiwyg_state_";
@@ -371,6 +372,16 @@ export class MessageComposer extends React.Component<IProps, IState> {
     };
 
     private renderPlaceholderText = (): string => {
+        if (isE2EEDisabled()) {
+            if (this.props.relation?.rel_type === THREAD_RELATION_TYPE.name) {
+                return _t("composer|placeholder_thread_generic");
+            }
+            if (this.props.replyToEvent) {
+                return _t("composer|placeholder_reply_generic");
+            }
+            return _t("composer|placeholder_generic");
+        }
+
         if (this.props.replyToEvent) {
             const replyingToThread = this.props.relation?.rel_type === THREAD_RELATION_TYPE.name;
             if (replyingToThread && this.props.e2eStatus) {
@@ -549,7 +560,8 @@ export class MessageComposer extends React.Component<IProps, IState> {
 
     public render(): React.ReactNode {
         let leftIcon: false | JSX.Element = false;
-        if (!this.state.isWysiwygLabEnabled) {
+        const e2eeDisabled = isE2EEDisabled();
+        if (!e2eeDisabled && !this.state.isWysiwygLabEnabled) {
             if (!this.props.e2eStatus) {
                 leftIcon = (
                     <div className="mx_MessageComposer_e2eIconWrapper">
@@ -593,7 +605,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
                         onSend={this.sendMessage}
                         isRichTextEnabled={this.state.isRichTextEnabled}
                         initialContent={this.state.initialComposerContent}
-                        e2eStatus={this.props.e2eStatus}
+                        e2eStatus={e2eeDisabled ? undefined : this.props.e2eStatus}
                         menuPosition={menuPosition}
                         placeholder={this.renderPlaceholderText()}
                         eventRelation={this.props.relation}
@@ -698,7 +710,7 @@ export class MessageComposer extends React.Component<IProps, IState> {
             <div className={classes} ref={this.ref} role="region" aria-label={_t("a11y|message_composer")}>
                 <div className="mx_MessageComposer_wrapper">
                     <MessageComposerUrlPreviewWrapper urlPreviewVm={this.props.urlPreviewVm} />
-                    <UserIdentityWarning room={this.props.room} key={this.props.room.roomId} />
+                    {!e2eeDisabled && <UserIdentityWarning room={this.props.room} key={this.props.room.roomId} />}
                     <ReplyPreview
                         replyToEvent={this.props.replyToEvent}
                         permalinkCreator={this.props.permalinkCreator}

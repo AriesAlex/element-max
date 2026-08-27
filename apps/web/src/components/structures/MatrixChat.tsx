@@ -124,6 +124,7 @@ import { getHtmlText } from "../../HtmlUtils";
 import { NotificationLevel } from "../../stores/notifications/NotificationLevel";
 import { type UserTab } from "../views/dialogs/UserTab";
 import { shouldSkipSetupEncryption } from "../../utils/crypto/shouldSkipSetupEncryption";
+import { isE2EEDisabled } from "../../utils/crypto/isE2EEDisabled";
 import { Filter } from "../views/dialogs/spotlight/Filter";
 import { SessionLockStolenView } from "./auth/SessionLockStolenView";
 import { ConfirmSessionLockTheftView } from "./auth/ConfirmSessionLockTheftView";
@@ -398,6 +399,11 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * {@link Views.COMPLETE_SECURITY}, which will later call {@link onCompleteSecurityE2eSetupFinished}.
      */
     private async postLoginSetup(): Promise<void> {
+        if (isE2EEDisabled()) {
+            this.onShowPostLoginScreen();
+            return;
+        }
+
         const cli = MatrixClientPeg.safeGet();
         const cryptoEnabled = Boolean(cli.getCrypto());
         if (!cryptoEnabled) {
@@ -1361,6 +1367,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
      * @returns true if the user must verify
      */
     private async shouldForceVerification(): Promise<boolean> {
+        if (isE2EEDisabled()) return false;
         if (!SdkConfig.get("force_verification")) return false;
         const mustVerifyFlag = localStorage.getItem("must_verify_device");
         if (!mustVerifyFlag) return false;
@@ -1693,75 +1700,77 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             });
         });
 
-        DecryptionFailureTracker.instance
-            .start(cli)
-            .catch((e) => logger.error("Unable to start DecryptionFailureTracker", e));
+        if (!isE2EEDisabled()) {
+            DecryptionFailureTracker.instance
+                .start(cli)
+                .catch((e) => logger.error("Unable to start DecryptionFailureTracker", e));
 
-        cli.on(ClientEvent.Room, (room) => {
-            if (cli.getCrypto()) {
-                const blacklistEnabled = SettingsStore.getValueAt(
-                    SettingLevel.ROOM_DEVICE,
-                    "blacklistUnverifiedDevices",
-                    room.roomId,
-                    /*explicit=*/ true,
-                );
-                room.setBlacklistUnverifiedDevices(blacklistEnabled);
-            }
-        });
-        cli.on(CryptoEvent.KeyBackupFailed, async (errcode): Promise<void> => {
-            let haveNewVersion: boolean | undefined;
-            let newVersionInfo: KeyBackupInfo | null = null;
-            const keyBackupEnabled = Boolean(
-                cli.getCrypto() && (await cli.getCrypto()?.getActiveSessionBackupVersion()) !== null,
-            );
-
-            // if key backup is still enabled, there must be a new backup in place
-            if (keyBackupEnabled) {
-                haveNewVersion = true;
-            } else {
-                // otherwise check the server to see if there's a new one
-                try {
-                    newVersionInfo = (await cli.getCrypto()?.getKeyBackupInfo()) ?? null;
-                    if (newVersionInfo !== null) haveNewVersion = true;
-                } catch (e) {
-                    logger.error("Saw key backup error but failed to check backup version!", e);
-                    return;
+            cli.on(ClientEvent.Room, (room) => {
+                if (cli.getCrypto()) {
+                    const blacklistEnabled = SettingsStore.getValueAt(
+                        SettingLevel.ROOM_DEVICE,
+                        "blacklistUnverifiedDevices",
+                        room.roomId,
+                        /*explicit=*/ true,
+                    );
+                    room.setBlacklistUnverifiedDevices(blacklistEnabled);
                 }
-            }
+            });
+            cli.on(CryptoEvent.KeyBackupFailed, async (errcode): Promise<void> => {
+                let haveNewVersion: boolean | undefined;
+                let newVersionInfo: KeyBackupInfo | null = null;
+                const keyBackupEnabled = Boolean(
+                    cli.getCrypto() && (await cli.getCrypto()?.getActiveSessionBackupVersion()) !== null,
+                );
 
-            if (haveNewVersion) {
-                Modal.createDialog(
-                    lazy(() => import("../../async-components/views/dialogs/security/NewRecoveryMethodDialog")),
-                );
-            } else {
-                Modal.createDialog(
-                    lazy(() => import("../../async-components/views/dialogs/security/RecoveryMethodRemovedDialog")),
-                );
-            }
-        });
+                // if key backup is still enabled, there must be a new backup in place
+                if (keyBackupEnabled) {
+                    haveNewVersion = true;
+                } else {
+                    // otherwise check the server to see if there's a new one
+                    try {
+                        newVersionInfo = (await cli.getCrypto()?.getKeyBackupInfo()) ?? null;
+                        if (newVersionInfo !== null) haveNewVersion = true;
+                    } catch (e) {
+                        logger.error("Saw key backup error but failed to check backup version!", e);
+                        return;
+                    }
+                }
 
-        cli.on(CryptoEvent.VerificationRequestReceived, (request) => {
-            if (request.verifier) {
-                Modal.createDialog(
-                    IncomingSasDialog,
-                    {
-                        verifier: request.verifier,
-                    },
-                    undefined,
-                    /* priority = */ false,
-                    /* static = */ true,
-                );
-            } else if (request.pending) {
-                ToastStore.sharedInstance().addOrReplaceToast({
-                    key: "verifreq_" + request.transactionId,
-                    title: _t("encryption|verification_requested_toast_title"),
-                    icon: <LockSolidIcon color="var(--cpd-color-text-primary)" />,
-                    props: { request },
-                    component: VerificationRequestToast,
-                    priority: 90,
-                });
-            }
-        });
+                if (haveNewVersion) {
+                    Modal.createDialog(
+                        lazy(() => import("../../async-components/views/dialogs/security/NewRecoveryMethodDialog")),
+                    );
+                } else {
+                    Modal.createDialog(
+                        lazy(() => import("../../async-components/views/dialogs/security/RecoveryMethodRemovedDialog")),
+                    );
+                }
+            });
+
+            cli.on(CryptoEvent.VerificationRequestReceived, (request) => {
+                if (request.verifier) {
+                    Modal.createDialog(
+                        IncomingSasDialog,
+                        {
+                            verifier: request.verifier,
+                        },
+                        undefined,
+                        /* priority = */ false,
+                        /* static = */ true,
+                    );
+                } else if (request.pending) {
+                    ToastStore.sharedInstance().addOrReplaceToast({
+                        key: "verifreq_" + request.transactionId,
+                        title: _t("encryption|verification_requested_toast_title"),
+                        icon: <LockSolidIcon color="var(--cpd-color-text-primary)" />,
+                        props: { request },
+                        component: VerificationRequestToast,
+                        priority: 90,
+                    });
+                }
+            });
+        }
     }
 
     /**

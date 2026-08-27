@@ -90,6 +90,16 @@ describe("MatrixClientPeg", () => {
             expect(mockInitRustCrypto).toHaveBeenCalledWith({ storageKey: cryptoStoreKey });
         });
 
+        it("should not initialise crypto when Element Max disables E2EE", async () => {
+            SdkConfig.put({ element_max: { disable_e2ee: true } });
+            const mockInitRustCrypto = vi.spyOn(testPeg.safeGet(), "initRustCrypto").mockResolvedValue(undefined);
+
+            await testPeg.start();
+
+            expect(mockInitRustCrypto).not.toHaveBeenCalled();
+            SdkConfig.reset();
+        });
+
         it("should try to start dehydration if dehydration is enabled", async () => {
             const mockInitRustCrypto = vi.spyOn(testPeg.safeGet(), "initRustCrypto").mockResolvedValue(undefined);
             const mockStartDehydration = vi.fn();

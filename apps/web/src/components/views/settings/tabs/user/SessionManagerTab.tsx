@@ -34,6 +34,7 @@ import { SettingsSection } from "../../shared/SettingsSection";
 import { getManageDeviceUrl } from "../../../../../utils/oauth/urls.ts";
 import { SDKContext } from "../../../../../contexts/SDKContext";
 import Spinner from "../../../elements/Spinner";
+import { isE2EEDisabled } from "../../../../../utils/crypto/isE2EEDisabled";
 
 // We import `LoginWithQR` asynchronously to avoid importing the entire Rust Crypto WASM into the main bundle.
 const LoginWithQR = lazy(() => import("../../../auth/LoginWithQR"));
@@ -127,6 +128,7 @@ const useSignOut = (
 const SessionManagerTab: React.FC<{
     showMsc4108QrCode?: boolean;
 }> = ({ showMsc4108QrCode }) => {
+    const e2eeDisabled = isE2EEDisabled();
     const {
         devices,
         dehydratedDeviceId,
@@ -251,7 +253,9 @@ const SessionManagerTab: React.FC<{
               }
             : undefined;
 
-    const [signInWithQrMode, setSignInWithQrMode] = useState<Mode | null>(showMsc4108QrCode ? Mode.Show : null);
+    const [signInWithQrMode, setSignInWithQrMode] = useState<Mode | null>(
+        !e2eeDisabled && showMsc4108QrCode ? Mode.Show : null,
+    );
 
     const onQrFinish = useCallback(() => {
         setSignInWithQrMode(null);
@@ -277,12 +281,16 @@ const SessionManagerTab: React.FC<{
     return (
         <SettingsTab>
             <SettingsSection>
-                <LoginWithQRSection onShowQr={onShowQrClicked} isCrossSigningReady={isCrossSigningReady} />
-                <SecurityRecommendations
-                    devices={devices}
-                    goToFilteredList={onGoToFilteredList}
-                    currentDeviceId={currentDeviceId}
-                />
+                {!e2eeDisabled && (
+                    <>
+                        <LoginWithQRSection onShowQr={onShowQrClicked} isCrossSigningReady={isCrossSigningReady} />
+                        <SecurityRecommendations
+                            devices={devices}
+                            goToFilteredList={onGoToFilteredList}
+                            currentDeviceId={currentDeviceId}
+                        />
+                    </>
+                )}
                 <CurrentDeviceSection
                     device={currentDevice}
                     localNotificationSettings={localNotificationSettings.get(currentDeviceId)}
@@ -290,7 +298,7 @@ const SessionManagerTab: React.FC<{
                     isSigningOut={signingOutDeviceIds.includes(currentDeviceId)}
                     isLoading={isLoadingDeviceList}
                     saveDeviceName={(deviceName) => saveDeviceName(currentDeviceId, deviceName)}
-                    onVerifyCurrentDevice={onVerifyCurrentDevice}
+                    onVerifyCurrentDevice={e2eeDisabled ? undefined : onVerifyCurrentDevice}
                     onSignOutCurrentDevice={onSignOutCurrentDevice}
                     signOutAllOtherSessions={signOutAllOtherSessions}
                     otherSessionsCount={otherSessionsCount}
@@ -306,7 +314,11 @@ const SessionManagerTab: React.FC<{
                                 disabled={!!signingOutDeviceIds.length}
                             />
                         }
-                        description={_t("settings|sessions|best_security_note")}
+                        description={_t(
+                            e2eeDisabled
+                                ? "settings|sessions|element_max_session_note"
+                                : "settings|sessions|best_security_note",
+                        )}
                         data-testid="other-sessions-section"
                         stretchContent
                     >
@@ -322,7 +334,7 @@ const SessionManagerTab: React.FC<{
                             onFilterChange={setFilter}
                             onDeviceExpandToggle={onDeviceExpandToggle}
                             onRequestDeviceVerification={
-                                requestDeviceVerification ? onTriggerDeviceVerification : undefined
+                                !e2eeDisabled && requestDeviceVerification ? onTriggerDeviceVerification : undefined
                             }
                             onSignOutDevices={onSignOutOtherDevices}
                             saveDeviceName={saveDeviceName}

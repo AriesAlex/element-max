@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Element Max — Matrix без потолка качества</title>
+        <meta
+            name="description"
+            content="Element Desktop с ручным качеством трансляции, системным звуком, редактором тем и автообновлением."
+        />
+        <meta name="theme-color" content="#0b0d0f" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Element Max" />
+        <meta property="og:description" content="Matrix без потолка качества трансляции." />
+        <meta property="og:url" content="https://ariesalex.github.io/element-max/" />
+        <link rel="canonical" href="https://ariesalex.github.io/element-max/" />
+        <link rel="icon" type="image/png" href="assets/icon.png" />
+        <link rel="stylesheet" href="styles.css" />
+        <script src="site.js" defer></script>
+    </head>
+    <body>
+        <header class="site-header">
+            <a class="brand" href="#top" aria-label="Element Max — наверх">
+                <img src="assets/icon.png" alt="" width="38" height="38" />
+                <span>Element Max</span>
+            </a>
+            <nav aria-label="Основная навигация">
+                <a href="#features">Возможности</a>
+                <a href="#security">Без шифрования</a>
+                <a href="https://github.com/AriesAlex/element-max">GitHub</a>
+            </nav>
+        </header>
+
+        <main id="top">
+            <section class="hero">
+                <div class="hero-copy">
+                    <p class="eyebrow">Element Desktop без искусственных ограничений</p>
+                    <h1>Стрим без мыла.</h1>
+                    <p class="lead">
+                        Вводите любое разрешение, FPS и битрейт — хоть 2K 165, хоть 4K 120. Передавайте системный звук и
+                        сразу видьте фактические параметры трансляции.
+                    </p>
+                    <div class="actions">
+                        <a
+                            class="button button-primary"
+                            href="https://github.com/AriesAlex/element-max/releases/download/element-max-latest/Element-Max-Setup.exe"
+                        >
+                            Скачать для Windows
+                        </a>
+                        <a class="button button-secondary" href="https://github.com/AriesAlex/element-max/releases">
+                            История сборок
+                        </a>
+                    </div>
+                    <p class="build-line">Windows x64 · <span data-version>последняя сборка</span> · обновляется сам</p>
+                </div>
+
+                <div class="control-demo" aria-label="Пример настроек Element Max">
+                    <div class="demo-titlebar">
+                        <span>Трансляция экрана</span>
+                        <span class="live-dot">LIVE</span>
+                    </div>
+                    <div class="demo-grid">
+                        <label><span>Ширина</span><strong>2560 px</strong></label>
+                        <label><span>Высота</span><strong>1440 px</strong></label>
+                        <label><span>Частота</span><strong>165 FPS</strong></label>
+                        <label><span>Битрейт</span><strong>80 Mbps</strong></label>
+                    </div>
+                    <div class="demo-toggle"><span>Системный звук</span><b>Включён</b></div>
+                    <div class="demo-meter"><i></i></div>
+                    <div class="demo-footer"><span>2560×1440</span><span>164.7 FPS</span><span>79.2 Mbps</span></div>
+                </div>
+            </section>
+
+            <section class="feature-list" id="features">
+                <article>
+                    <span class="feature-number">01</span>
+                    <h2>Любые параметры</h2>
+                    <p>Числовые поля вместо жёстких пресетов. Ограничение задаёт только железо, сеть и получатель.</p>
+                </article>
+                <article>
+                    <span class="feature-number">02</span>
+                    <h2>Звук Windows</h2>
+                    <p>Системное аудио передаётся вместе с экраном без отдельного виртуального микрофона.</p>
+                </article>
+                <article>
+                    <span class="feature-number">03</span>
+                    <h2>Все цвета темы</h2>
+                    <p>
+                        Редактор реальных CSS-токенов обновляет интерфейс на лету. Пресеты импортируются и
+                        экспортируются.
+                    </p>
+                </article>
+                <article>
+                    <span class="feature-number">04</span>
+                    <h2>Обновления внутри клиента</h2>
+                    <p>Новая rolling-сборка скачивается штатным обновлятором Element Max и ставится поверх текущей.</p>
+                </article>
+            </section>
+
+            <section class="security-note" id="security">
+                <p class="eyebrow">Осознанная модель безопасности</p>
+                <h2>Без Matrix E2EE.</h2>
+                <p>
+                    Element Max не запускает криптодвижок и не показывает проверки устройств или предупреждения о
+                    «незашифрованных» сообщениях. Используйте его только с сервером, где открытая история комнат —
+                    намеренная политика. Для обычного публичного Matrix берите официальный Element.
+                </p>
+            </section>
+
+            <section class="install">
+                <div>
+                    <p class="eyebrow">Один установщик</p>
+                    <h2>Поставил — дальше обновляется сам.</h2>
+                </div>
+                <a
+                    class="button button-primary"
+                    href="https://github.com/AriesAlex/element-max/releases/download/element-max-latest/Element-Max-Setup.exe"
+                >
+                    Скачать Element Max
+                </a>
+            </section>
+        </main>
+
+        <footer>
+            <span>Element Max</span>
+            <span>Форк <a href="https://github.com/element-hq/element-web">Element Web</a></span>
+            <a href="https://github.com/AriesAlex/element-max/blob/main/LICENSE-AGPL-3.0">AGPL-3.0</a>
+        </footer>
+    </body>
+</html>

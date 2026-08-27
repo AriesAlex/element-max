@@ -23,6 +23,7 @@ import FilteredDeviceListHeader from "./FilteredDeviceListHeader";
 import Spinner from "../../elements/Spinner";
 import { DeviceSecurityLearnMore } from "./DeviceSecurityLearnMore";
 import DeviceTile from "./DeviceTile";
+import { isE2EEDisabled } from "../../../../utils/crypto/isE2EEDisabled";
 
 interface Props {
     devices: DevicesDictionary;
@@ -262,6 +263,7 @@ export const FilteredDeviceList = ({
     accountManagementActionsSupported,
     ref,
 }: Props): JSX.Element => {
+    const e2eeDisabled = isE2EEDisabled();
     const sortedDevices = getFilteredSortedDevices(devices, filter);
 
     function getPusherForDevice(device: ExtendedDevice): IPusher | undefined {
@@ -277,18 +279,23 @@ export const FilteredDeviceList = ({
         }
     };
 
+    const verificationOptions: FilterDropdownOption<DeviceFilterKey>[] = e2eeDisabled
+        ? []
+        : [
+              {
+                  id: DeviceSecurityVariation.Verified,
+                  label: _t("common|verified"),
+                  description: _t("settings|sessions|filter_verified_description"),
+              },
+              {
+                  id: DeviceSecurityVariation.Unverified,
+                  label: _t("common|unverified"),
+                  description: _t("settings|sessions|filter_unverified_description"),
+              },
+          ];
     const options: FilterDropdownOption<DeviceFilterKey>[] = [
         { id: ALL_FILTER_ID, label: _t("settings|sessions|filter_all") },
-        {
-            id: DeviceSecurityVariation.Verified,
-            label: _t("common|verified"),
-            description: _t("settings|sessions|filter_verified_description"),
-        },
-        {
-            id: DeviceSecurityVariation.Unverified,
-            label: _t("common|unverified"),
-            description: _t("settings|sessions|filter_unverified_description"),
-        },
+        ...verificationOptions,
         {
             id: DeviceSecurityVariation.Inactive,
             label: _t("settings|sessions|filter_inactive"),

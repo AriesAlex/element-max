@@ -20,6 +20,7 @@ import {
 import { _t, _td } from "../../../../languageHandler";
 import { type ExtendedDevice } from "./types";
 import { DeviceType } from "../../../../utils/device/parseUserAgent";
+import { isE2EEDisabled } from "../../../../utils/crypto/isE2EEDisabled";
 
 interface Props {
     isVerified?: ExtendedDevice["isVerified"];
@@ -52,19 +53,20 @@ export const DeviceTypeIcon: React.FC<Props> = ({ isVerified, isSelected, device
             <div className="mx_DeviceTypeIcon_deviceIconWrapper">
                 <Icon className="mx_DeviceTypeIcon_deviceIcon" role="img" aria-label={label} />
             </div>
-            {isVerified ? (
-                <ShieldIcon
-                    className={classNames("mx_DeviceTypeIcon_verificationIcon", "verified")}
-                    role="img"
-                    aria-label={_t("common|verified")}
-                />
-            ) : (
-                <ErrorSolidIcon
-                    className={classNames("mx_DeviceTypeIcon_verificationIcon", "unverified")}
-                    role="img"
-                    aria-label={_t("common|unverified")}
-                />
-            )}
+            {!isE2EEDisabled() &&
+                (isVerified ? (
+                    <ShieldIcon
+                        className={classNames("mx_DeviceTypeIcon_verificationIcon", "verified")}
+                        role="img"
+                        aria-label={_t("common|verified")}
+                    />
+                ) : (
+                    <ErrorSolidIcon
+                        className={classNames("mx_DeviceTypeIcon_verificationIcon", "unverified")}
+                        role="img"
+                        aria-label={_t("common|unverified")}
+                    />
+                ))}
         </div>
     );
 };

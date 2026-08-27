@@ -26,6 +26,7 @@ import PlatformPeg from "./PlatformPeg";
 import SdkConfig from "./SdkConfig";
 import { setDeviceIsolationMode } from "./settings/controllers/DeviceIsolationModeController.ts";
 import { initialiseDehydrationIfEnabled } from "./utils/device/dehydration";
+import { isE2EEDisabled } from "./utils/crypto/isE2EEDisabled";
 
 export interface MatrixClientPegAssignOpts {
     /**
@@ -255,7 +256,7 @@ class MatrixClientPegClass implements IMatrixClientPeg {
         this.matrixClient.store.on?.("closed", this.onUnexpectedStoreClose);
 
         // try to initialise e2e on the new client
-        if (!SettingsStore.getValue("lowBandwidth")) {
+        if (!SettingsStore.getValue("lowBandwidth") && !isE2EEDisabled()) {
             await this.initClientCrypto(assignOpts.rustCryptoStoreKey, assignOpts.rustCryptoStorePassword);
         }
 

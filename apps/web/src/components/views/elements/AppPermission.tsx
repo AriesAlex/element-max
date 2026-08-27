@@ -14,6 +14,7 @@ import { Tooltip } from "@vector-im/compound-web";
 import { HelpIcon } from "@vector-im/compound-design-tokens/assets/web/icons";
 
 import { _t } from "../../../languageHandler";
+import { isE2EEDisabled } from "../../../utils/crypto/isE2EEDisabled";
 import SdkConfig from "../../../SdkConfig";
 import WidgetUtils from "../../../utils/WidgetUtils";
 import { MatrixClientPeg } from "../../../MatrixClientPeg";
@@ -127,7 +128,8 @@ export default class AppPermission extends React.Component<IProps, IState> {
                   { helpIcon: () => warningTooltip },
               );
 
-        const encryptionWarning = this.props.isRoomEncrypted ? _t("widget|unencrypted_warning") : null;
+        const encryptionWarning =
+            !isE2EEDisabled() && this.props.isRoomEncrypted ? _t("widget|unencrypted_warning") : null;
 
         return (
             <div className="mx_AppPermission">

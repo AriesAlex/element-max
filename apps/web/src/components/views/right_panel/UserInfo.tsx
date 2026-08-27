@@ -27,6 +27,7 @@ import PosthogTrackers from "../../../PosthogTrackers";
 import { UserInfoHeaderView } from "./user_info/UserInfoHeaderView";
 import { UserInfoBasicView } from "./user_info/UserInfoBasicView";
 import { SDKContext } from "../../../contexts/SDKContext.ts";
+import { isE2EEDisabled } from "../../../utils/crypto/isE2EEDisabled";
 
 export interface IDevice extends Device {
     ambiguous?: boolean;
@@ -105,11 +106,17 @@ async function getUserDeviceInfo(
 
 export const useDevices = (userId: string): IDevice[] | undefined | null => {
     const cli = useContext(MatrixClientContext);
+    const e2eeDisabled = isE2EEDisabled();
 
     // undefined means yet to be loaded, null means failed to load, otherwise list of devices
     const [devices, setDevices] = useState<undefined | null | IDevice[]>(undefined);
     // Download device lists
     useEffect(() => {
+        if (e2eeDisabled) {
+            setDevices([]);
+            return;
+        }
+
         setDevices(undefined);
 
         let cancelled = false;
@@ -135,10 +142,12 @@ export const useDevices = (userId: string): IDevice[] | undefined | null => {
         return () => {
             cancelled = true;
         };
-    }, [cli, userId]);
+    }, [cli, e2eeDisabled, userId]);
 
     // Listen to changes
     useEffect(() => {
+        if (e2eeDisabled) return;
+
         let cancel = false;
         const updateDevices = async (): Promise<void> => {
             const newDevices = await getUserDeviceInfo(userId, cli);
@@ -161,7 +170,7 @@ export const useDevices = (userId: string): IDevice[] | undefined | null => {
             cli.removeListener(CryptoEvent.DevicesUpdated, onDevicesUpdated);
             cli.removeListener(CryptoEvent.UserTrustStatusChanged, onUserTrustStatusChanged);
         };
-    }, [cli, userId]);
+    }, [cli, e2eeDisabled, userId]);
 
     return devices;
 };
@@ -179,6 +188,7 @@ interface IProps {
 
 const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPhases.MemberInfo, ...props }) => {
     const sdkContext = useContext(SDKContext);
+    const effectivePhase = isE2EEDisabled() ? RightPanelPhases.MemberInfo : phase;
 
     // fetch latest room member if we have a room, so we don't show historical information, falling back to user
     const member = useMemo(() => (room ? room.getMember(user.userId) || user : user), [room, user]);
@@ -193,7 +203,7 @@ const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPha
     };
 
     let content: JSX.Element | undefined;
-    switch (phase) {
+    switch (effectivePhase) {
         case RightPanelPhases.MemberInfo:
             content = <UserInfoBasicView room={room!} member={member} />;
             break;
@@ -211,7 +221,7 @@ const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPha
     }
 
     let closeLabel: string | undefined;
-    if (phase === RightPanelPhases.EncryptionPanel) {
+    if (effectivePhase === RightPanelPhases.EncryptionPanel) {
         const verificationRequest = (props as React.ComponentProps<typeof EncryptionPanel>).verificationRequest;
         if (verificationRequest && verificationRequest.pending) {
             closeLabel = _t("action|cancel");
@@ -220,7 +230,7 @@ const UserInfo: React.FC<IProps> = ({ user, room, onClose, phase = RightPanelPha
 
     const header = (
         <UserInfoHeaderView
-            hideVerificationSection={phase === RightPanelPhases.EncryptionPanel}
+            hideVerificationSection={effectivePhase === RightPanelPhases.EncryptionPanel}
             member={member}
             devices={devices}
             roomId={room?.roomId}

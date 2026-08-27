@@ -27,6 +27,7 @@ import { _t } from "./languageHandler";
 import SettingsStore from "./settings/SettingsStore";
 import ThemeWatcher from "./settings/watchers/ThemeWatcher";
 import { FontWatcher } from "./settings/watchers/FontWatcher";
+import { applyStoredThemeOverrides } from "./utils/elementMaxTheme";
 
 export const DEFAULT_THEME = "light";
 const HIGH_CONTRAST_THEMES: Record<string, string> = {
@@ -383,6 +384,7 @@ export async function setTheme(theme?: string): Promise<void> {
                 if (a == styleSheet) return;
                 a.disabled = true;
             });
+            applyStoredThemeOverrides();
             const bodyStyles = global.getComputedStyle(document.body);
             if (bodyStyles.backgroundColor) {
                 const metaElement = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!;

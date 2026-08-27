@@ -49,6 +49,7 @@ import { type SDKContextClass } from "../../../contexts/SDKContextClass";
 import { useSettingValue } from "../../../hooks/useSettings";
 import { NoChange, useEventEmitterAsyncState, type AsyncStateCallbackResult } from "../../../hooks/useEventEmitter";
 import { EncryptionUserSettingsTab, type State } from "../settings/tabs/user/EncryptionUserSettingsTab";
+import { isE2EEDisabled } from "../../../utils/crypto/isE2EEDisabled";
 
 interface IProps {
     initialTabId?: UserTab;
@@ -97,6 +98,7 @@ function titleForTabID(tabId: UserTab): React.ReactNode {
 }
 
 export default function UserSettingsDialog(props: IProps): JSX.Element {
+    const e2eeDisabled = isE2EEDisabled();
     const voipEnabled = useSettingValue(UIFeature.Voip);
     const mjolnirEnabled = useSettingValue("feature_mjolnir");
     // store these props in state as changing tabs back and forth should clear them
@@ -109,6 +111,7 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
         props.sdkContext.client,
         ClientEvent.AccountData,
         async (event?: MatrixEvent): AsyncStateCallbackResult<boolean> => {
+            if (e2eeDisabled) return false;
             if (event === undefined || event.getType() === "m.secret_storage.default_key") {
                 const client = props.sdkContext.client;
                 if (!client) {
@@ -212,16 +215,18 @@ export default function UserSettingsDialog(props: IProps): JSX.Element {
             ),
         );
 
-        tabs.push(
-            new Tab(
-                UserTab.Encryption,
-                _td("settings|encryption|title"),
-                <KeyIcon />,
-                <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
-                "UserSettingsEncryption",
-                showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
-            ),
-        );
+        if (!e2eeDisabled) {
+            tabs.push(
+                new Tab(
+                    UserTab.Encryption,
+                    _td("settings|encryption|title"),
+                    <KeyIcon />,
+                    <EncryptionUserSettingsTab initialState={initialEncryptionState} />,
+                    "UserSettingsEncryption",
+                    showSetupRecoveryIndicator ? "mx_SettingsDialog_tabLabelsAlert" : undefined,
+                ),
+            );
+        }
 
         if (showLabsFlags() || SettingsStore.getFeatureSettingNames().some((k) => SettingsStore.getBetaInfo(k))) {
             tabs.push(

@@ -34,6 +34,7 @@ import ToastStore from "./stores/ToastStore";
 import { IntegrationManagers } from "./integrations/IntegrationManagers";
 import { Mjolnir } from "./mjolnir/Mjolnir";
 import { DeviceListener } from "./device-listener";
+import { isE2EEDisabled } from "./utils/crypto/isE2EEDisabled";
 import { Jitsi } from "./widgets/Jitsi";
 import { SSO_HOMESERVER_URL_KEY, SSO_ID_SERVER_URL_KEY, SSO_IDP_ID_KEY } from "./BasePlatform";
 import ThreepidInviteStore from "./stores/ThreepidInviteStore";
@@ -805,7 +806,7 @@ async function doSetLoggedIn(
     // If there's an inconsistency between account data in local storage and the
     // crypto store, we'll be generally confused when handling encrypted data.
     // Show a modal recommending a full reset of storage.
-    if (results.dataInLocalStorage && results.cryptoInited && !results.dataInCryptoStore) {
+    if (!isE2EEDisabled() && results.dataInLocalStorage && results.cryptoInited && !results.dataInCryptoStore) {
         logger.warn("doSetLoggedIn: StorageManager consistency check failed; displaying StorageEvictedDialog.");
         await abortLogin();
     }
@@ -863,10 +864,12 @@ async function doSetLoggedIn(
     // Run the migrations after the MatrixClientPeg has been assigned
     SettingsStore.runMigrations(isFreshLogin);
 
-    if (isFreshLogin && !credentials.guest) {
+    if (isFreshLogin && !credentials.guest && !isE2EEDisabled()) {
         // For newly registered users, set a flag so that we force them to verify,
         // (we don't want to force users with existing sessions to verify though)
         localStorage.setItem("must_verify_device", "true");
+    } else if (isE2EEDisabled()) {
+        localStorage.removeItem("must_verify_device");
     }
 
     return client;
@@ -1072,8 +1075,10 @@ async function startMatrixClient(
 
     checkSessionLock();
 
-    // This needs to be started after crypto is set up
-    DeviceListener.sharedInstance().start(client);
+    // This needs to be started after crypto is set up.
+    if (!isE2EEDisabled()) {
+        DeviceListener.sharedInstance().start(client);
+    }
 
     CallStatusListener.sharedInstance().start(CallStore.instance, client);
 

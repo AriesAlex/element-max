@@ -17,6 +17,7 @@ import PresenceLabel from "../../rooms/PresenceLabel";
 import CopyableText from "../../elements/CopyableText";
 import { UserInfoHeaderVerificationView } from "./UserInfoHeaderVerificationView";
 import { useUserStatus } from "../../../../hooks/useUserStatus";
+import { isE2EEDisabled } from "../../../../utils/crypto/isE2EEDisabled";
 
 export interface UserInfoHeaderViewProps {
     member: Member;
@@ -92,7 +93,9 @@ export const UserInfoHeaderView: React.FC<UserInfoHeaderViewProps> = ({
                         </CopyableText>
                     </Text>
                 </Flex>
-                {!hideVerificationSection && <UserInfoHeaderVerificationView member={member} devices={devices} />}
+                {!isE2EEDisabled() && !hideVerificationSection && (
+                    <UserInfoHeaderVerificationView member={member} devices={devices} />
+                )}
             </Container>
         </React.Fragment>
     );

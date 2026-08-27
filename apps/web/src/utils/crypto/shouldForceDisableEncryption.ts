@@ -9,6 +9,7 @@ Please see LICENSE files in the repository root for full details.
 import { type MatrixClient } from "matrix-js-sdk/src/matrix";
 
 import { getE2EEWellKnown } from "../WellKnownUtils";
+import { isE2EEDisabled } from "./isE2EEDisabled";
 
 /**
  * Check e2ee io.element.e2ee setting
@@ -21,6 +22,8 @@ import { getE2EEWellKnown } from "../WellKnownUtils";
  * @returns whether well-known config forces encryption to DISABLED
  */
 export function shouldForceDisableEncryption(client: MatrixClient): boolean {
+    if (isE2EEDisabled()) return true;
+
     const e2eeWellKnown = getE2EEWellKnown(client);
 
     if (e2eeWellKnown) {

@@ -46,6 +46,10 @@ export interface WebConfigJson {
     enable_client_well_known_lookups?: boolean;
 
     brand?: string;
+    element_max?: {
+        /** Run the client without Matrix E2EE or any encryption-specific user interface. */
+        disable_e2ee?: boolean;
+    };
     branding?: {
         welcome_background_url?: string | string[]; // chosen at random if array
         logo_link_url?: string;

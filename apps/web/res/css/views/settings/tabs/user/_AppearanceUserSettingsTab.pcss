@@ -11,3 +11,106 @@ Please see LICENSE files in the repository root for full details.
     /* Line up with Settings field toggle button */
     margin-inline-start: 0;
 }
+
+.mx_ElementMaxThemeEditor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cpd-space-4x);
+    width: 100%;
+
+    .mx_ElementMaxThemeEditor_toolbar,
+    .mx_ElementMaxThemeEditor_presetCreator {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: var(--cpd-space-2x);
+
+        .mx_Field {
+            min-width: 220px;
+            margin: 0;
+            flex: 1;
+        }
+    }
+
+    .mx_ElementMaxThemeEditor_presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--cpd-space-2x);
+    }
+
+    .mx_ElementMaxThemeEditor_preset {
+        display: flex;
+        align-items: center;
+        gap: var(--cpd-space-2x);
+        padding: var(--cpd-space-1x) var(--cpd-space-2x);
+        border: 1px solid var(--cpd-color-border-interactive-secondary);
+        border-radius: var(--cpd-space-2x);
+        background: var(--cpd-color-bg-subtle-secondary);
+
+        span {
+            font: var(--cpd-font-body-sm-semibold);
+        }
+    }
+
+    .mx_ElementMaxThemeEditor_message {
+        margin: 0;
+        color: var(--cpd-color-text-secondary);
+    }
+
+    .mx_ElementMaxThemeEditor_colors {
+        display: flex;
+        flex-direction: column;
+        max-height: min(52vh, 620px);
+        overflow: auto;
+        border-block: 1px solid var(--cpd-color-border-interactive-secondary);
+    }
+
+    .mx_ElementMaxThemeEditor_color {
+        display: grid;
+        grid-template-columns: 36px minmax(210px, 1.4fr) minmax(170px, 1fr) auto;
+        align-items: center;
+        gap: var(--cpd-space-2x);
+        min-height: 48px;
+        padding: var(--cpd-space-1x) var(--cpd-space-2x);
+        border-bottom: 1px solid var(--cpd-color-border-interactive-secondary);
+
+        code {
+            overflow: hidden;
+            color: var(--cpd-color-text-primary);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .mx_ElementMaxThemeEditor_picker {
+        width: 32px;
+        height: 32px;
+        padding: 2px;
+        cursor: pointer;
+        border: 1px solid var(--cpd-color-border-interactive-secondary);
+        border-radius: var(--cpd-space-1x);
+        background: transparent;
+    }
+
+    .mx_ElementMaxThemeEditor_value {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: var(--cpd-space-2x);
+        color: var(--cpd-color-text-primary);
+        font: var(--cpd-font-body-sm-regular);
+        border: 1px solid var(--cpd-color-border-interactive-secondary);
+        border-radius: var(--cpd-space-1x);
+        background: var(--cpd-color-bg-canvas-default);
+    }
+
+    @media (width <= 680px) {
+        .mx_ElementMaxThemeEditor_color {
+            grid-template-columns: 36px minmax(0, 1fr) auto;
+
+            .mx_ElementMaxThemeEditor_value {
+                grid-column: 1 / -1;
+            }
+        }
+    }
+}
