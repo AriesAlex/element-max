@@ -90,9 +90,10 @@ Perl, Tcl и NASM. В CI их настраивает единственный Wi
   содержать системный звук без голоса самого Element.
 - Electron должен оставаться не ниже версии, где исправлено применение `restrictOwnAudio` к display
   media. При обновлении Electron повторно проверяй loopback и отсутствие эха звонка.
-- `.github/workflows/build-element-max-windows.yaml` собирает только x64 Squirrel installer. Перед
-  публикацией нового артефакта workflow удаляет предыдущие артефакты с именем
-  `element-max-windows-x64`, загружает только setup `.exe` и не создаёт отдельные SHA/checksum-artifacts.
+- `.github/workflows/build-element-max-windows.yaml` собирает только x64 Squirrel installer. Workflow
+  удаляет прежние Actions artifacts `element-max-windows-x64`, затем заменяет rolling prerelease
+  `element-max-latest`, чтобы не расходовать Actions storage. В release должен оставаться ровно один
+  setup `.exe`; отдельные SHA/checksum-assets запрещены.
 - Локальные `apps/web/config.json`, `webapp`, `dist`, `node_modules` и прочие результаты сборки не
   коммить. Временные исследовательские файлы держи вне репозитория.
 
