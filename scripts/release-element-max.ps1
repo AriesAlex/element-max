@@ -173,17 +173,22 @@ Copy-Item -LiteralPath (Join-Path $desktopDir "element.max/config.json") -Destin
 Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "asar-webapp") -WorkingDirectory $repoRoot
 
 Write-Host "Building native dependencies"
-Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "build:native", "--target", "x86_64-pc-windows-msvc") -WorkingDirectory $repoRoot
+$hakTrackedFiles = @("package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml")
+try {
+    Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "build:native", "--target", "x86_64-pc-windows-msvc") -WorkingDirectory $repoRoot
 
-if (Test-Path -LiteralPath $desktopDistDir) {
-    Remove-Item -LiteralPath $desktopDistDir -Recurse -Force
+    if (Test-Path -LiteralPath $desktopDistDir) {
+        Remove-Item -LiteralPath $desktopDistDir -Recurse -Force
+    }
+    $env:NX_DAEMON = "false"
+    $env:VARIANT_PATH = "element.max/build.json"
+    $env:VERSION = $version
+
+    Write-Host "Packaging Element Max $version"
+    Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "run", "build", "--publish", "never", "-w", "squirrel") -WorkingDirectory $repoRoot
+} finally {
+    Invoke-External -FilePath "git" -Arguments (@("restore", "--source=HEAD", "--worktree", "--") + $hakTrackedFiles) -WorkingDirectory $repoRoot
 }
-$env:NX_DAEMON = "false"
-$env:VARIANT_PATH = "element.max/build.json"
-$env:VERSION = $version
-
-Write-Host "Packaging Element Max $version"
-Invoke-Pnpm -Version "11.20.0" -Arguments @("--dir", "apps/desktop", "run", "build", "--publish", "never", "-w", "squirrel") -WorkingDirectory $repoRoot
 
 $squirrelDir = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $desktopDistDir -Directory -Filter "squirrel-windows*") -Description "Squirrel output directory"
 $setup = Assert-SingleFile -Files @(Get-ChildItem -LiteralPath $desktopDistDir -Recurse -File -Filter "*Setup*.exe") -Description "setup executable"
