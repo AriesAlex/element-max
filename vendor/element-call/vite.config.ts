@@ -23,6 +23,18 @@ import wasm from "vite-plugin-wasm";
 import react from "@vitejs/plugin-react";
 import { realpathSync } from "fs";
 import * as fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const linkedDependencyAliases = {
+  // Linked Matrix JS SDK sources live outside this package's node_modules,
+  // so explicitly resolve the shims injected by this Vite configuration.
+  "vite-plugin-node-polyfills": path.join(
+    __dirname,
+    "node_modules/vite-plugin-node-polyfills",
+  ),
+};
 
 export const vitePluginsConfig = ({
   mode,
@@ -78,7 +90,7 @@ export const vitePluginsConfig = ({
     );
   }
 
-  return { plugins };
+  return { plugins, resolve: { alias: linkedDependencyAliases } };
 };
 // https://vitejs.dev/config/
 // Modified type helper from defineConfig to allow for packageType (see defineConfig from vite)
@@ -146,6 +158,7 @@ export default ({
     },
     resolve: {
       alias: {
+        ...linkedDependencyAliases,
         // matrix-widget-api has its transpiled lib/index.js as its entry point,
         // which Vite for some reason refuses to work with, so we point it to
         // src/index.ts instead

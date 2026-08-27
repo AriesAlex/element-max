@@ -9,6 +9,10 @@ permissions:
     contents: read
     actions: write
 
+concurrency:
+    group: element-max-windows
+    cancel-in-progress: true
+
 jobs:
     build:
         runs-on: windows-2025
@@ -25,16 +29,22 @@ jobs:
               with:
                   node-version-file: .node-version
 
+            - name: Build compatible Matrix JS SDK
+              working-directory: vendor/matrix-js-sdk
+              run: corepack pnpm@11.2.2 install --frozen-lockfile
+
             - name: Build compatible Element Call widget
+              working-directory: vendor/element-call
               run: |
-                  pnpm --dir vendor/element-call install --frozen-lockfile
-                  pnpm --dir vendor/element-call build:embedded
+                  corepack pnpm@11.6.0 install --frozen-lockfile
+                  corepack pnpm@11.6.0 build:embedded
 
             - name: Install Element dependencies
               run: pnpm install --frozen-lockfile
 
             - name: Build Element webapp
               run: |
+                  $env:Path = "$env:ProgramFiles\Git\bin;$env:Path"
                   Copy-Item apps/desktop/element.max/config.json apps/web/config.json
                   pnpm --filter element-web build
 
@@ -42,8 +52,14 @@ jobs:
               run: |
                   Copy-Item -Recurse apps/web/webapp apps/desktop/webapp
                   Copy-Item -Force apps/desktop/element.max/config.json apps/desktop/webapp/config.json
-                  Copy-Item apps/desktop/element.max/build.json apps/desktop/variant.json
                   pnpm --filter element-desktop asar-webapp
+
+            - name: Install native build prerequisites
+              run: |
+                  choco install -y magicsplat-tcl-tk nasm --no-progress
+                  "$env:USERPROFILE/AppData/Local/Apps/Tcl86/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                  "C:/Program Files/NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+                  rustup target add x86_64-pc-windows-msvc
 
             - name: Configure MSVC
               uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
@@ -57,7 +73,8 @@ jobs:
             - name: Package Element Max
               working-directory: apps/desktop
               env:
-                  VARIANT_PATH: variant.json
+                  NX_DAEMON: "false"
+                  VARIANT_PATH: element.max/build.json
               run: pnpm run build --publish never -w squirrel
 
             - name: Delete previous Element Max artifacts

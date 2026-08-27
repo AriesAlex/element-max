@@ -12,6 +12,9 @@
 - `vendor/element-call` — отслеживаемое `git subtree` совместимой версии Element Call. Качество захвата и
   публикации экрана задаётся в
   `vendor/element-call/src/state/CallViewModel/localMember/LocalMember.ts`.
+- `vendor/matrix-js-sdk` — отслеживаемое `git subtree` точного Matrix JS SDK commit, зафиксированного
+  совместимым Element Call. Он собирается до Element Call и подключается к нему через локальную `link:`
+  dependency, чтобы git dependency не запускала невоспроизводимый package lifecycle.
 - `apps/desktop/element.max` — единственный build/runtime variant Element Max. В нём отдельные app ID,
   protocol, product name и конфиг без официального auto-update URL, поэтому официальный Element не
   перезаписывает форк и использует отдельный профиль.
@@ -29,6 +32,7 @@ Element Call сначала собирается из `vendor/element-call`, з�
 - `origin` — подтверждённый приватный `AriesAlex/element-max`.
 - `upstream` — `https://github.com/element-hq/element-web.git`.
 - `element-call-upstream` — `https://github.com/element-hq/element-call.git`.
+- `matrix-js-sdk-upstream` — `https://github.com/matrix-org/matrix-js-sdk.git`.
 - Стабильный Element вливай в `main` явным merge-коммитом по `UPDATING.md`. Rebase на upstream и force
   push запрещены: история форка и каждого обновления должна оставаться аудируемой.
 - Element Call обновляй только совместимым стабильным тегом через `git subtree pull --squash`. После
@@ -38,18 +42,39 @@ Element Call сначала собирается из `vendor/element-call`, з�
 
 ## Проверка и сборка
 
-Используются Node.js 24 и pnpm 11.20.0. Базовая последовательность:
+Используются Node.js 24; корневой Element фиксирует pnpm 11.20.0, Element Call — 11.6.0, а его точный
+Matrix JS SDK — 11.2.2. Не заменяй эти версии одной глобальной. Базовая последовательность:
 
 ```powershell
-pnpm --dir vendor/element-call install --frozen-lockfile
-pnpm --dir vendor/element-call build:embedded
-pnpm install --frozen-lockfile
-pnpm --dir vendor/element-call test:unit --run src/state/CallViewModel/localMember/LocalMember.test.ts
-pnpm --dir apps/desktop test:unit --run
-pnpm --dir apps/desktop lint:types:src
+Push-Location vendor/matrix-js-sdk
+corepack pnpm@11.2.2 install --frozen-lockfile
+Pop-Location
+Push-Location vendor/element-call
+corepack pnpm@11.6.0 install --frozen-lockfile
+corepack pnpm@11.6.0 build:embedded
+corepack pnpm@11.6.0 test:unit --run src/state/CallViewModel/localMember/LocalMember.test.ts
+Pop-Location
+corepack pnpm@11.20.0 install --frozen-lockfile
+corepack pnpm@11.20.0 --dir apps/desktop test:unit --run src/displayMediaCallback.test.ts src/ipc.test.ts
+corepack pnpm@11.20.0 --dir apps/desktop lint:types:src
 Copy-Item apps/desktop/element.max/config.json apps/web/config.json
-pnpm --filter element-web build
+corepack pnpm@11.20.0 --filter element-web build
+Copy-Item -Recurse apps/web/webapp apps/desktop/webapp
+Copy-Item -Force apps/desktop/element.max/config.json apps/desktop/webapp/config.json
+corepack pnpm@11.20.0 --dir apps/desktop asar-webapp
+corepack pnpm@11.20.0 --dir apps/desktop build:native --target x86_64-pc-windows-msvc
+$env:NX_DAEMON = "false"
+$env:VARIANT_PATH = "element.max/build.json"
+corepack pnpm@11.20.0 --dir apps/desktop run build --publish never -w squirrel
 ```
+
+Установка Matrix JS SDK запускает его штатный `prepare` build; не запускай тот же build повторно.
+`build:embedded` пишет готовый локальный пакет напрямую в `vendor/element-call/embedded/web/dist`.
+Полный upstream desktop suite сейчас содержит Windows-неспецифичные ожидания Unix-разделителей путей,
+поэтому для этого patch запускаются два затронутых desktop test-файла и проверка типов.
+Нативной Windows-сборке нужны MSVC x64 environment, Rust target `x86_64-pc-windows-msvc`, native Windows
+Perl, Tcl и NASM. В CI их настраивает единственный Windows workflow; локально не подменяй MSVC `link.exe`
+одноимённым Unix tool из Git `usr/bin`.
 
 - После изменений screen share обязательно проверь фактические capture/publish constraints, запуск
   упакованного приложения и реальную зашифрованную MatrixRTC-трансляцию. Для Windows нужны видео
