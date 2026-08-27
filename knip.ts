@@ -46,7 +46,6 @@ export default {
                 "playwright/**",
                 "test/**",
                 "res/decoder-ring/**",
-                "res/jitsi_external_api.min.js",
                 "res/themes/*/css/*.pcss!",
                 "I18nWebpackPlugin.ts!",
                 "module_system/**!",

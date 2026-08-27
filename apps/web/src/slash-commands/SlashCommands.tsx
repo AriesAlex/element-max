@@ -35,7 +35,6 @@ import { AddressType, getAddressType } from "../UserAddress";
 import { abbreviateUrl } from "../utils/UrlUtils";
 import { getDefaultIdentityServerUrl, setToDefaultIdentityServer } from "../utils/IdentityServerUtils";
 import { WidgetType } from "../widgets/WidgetType";
-import { Jitsi } from "../widgets/Jitsi";
 import BugReportDialog from "../components/views/dialogs/BugReportDialog";
 import { ensureDMExists } from "../createRoom";
 import { type ViewUserPayload } from "../dispatcher/payloads/ViewUserPayload";
@@ -533,7 +532,7 @@ export const Commands = [
     }),
     new Command({
         command: "addwidget",
-        args: "<url | embed code | Jitsi url>",
+        args: "<url | embed code>",
         description: _td("slash_command|addwidget"),
         isEnabled: (cli) =>
             SettingsStore.getValue(UIFeature.Widgets) &&
@@ -566,21 +565,9 @@ export const Commands = [
                 const userId = cli.getUserId();
                 const nowMs = new Date().getTime();
                 const widgetId = encodeURIComponent(`${roomId}_${userId}_${nowMs}`);
-                let type = WidgetType.CUSTOM;
-                let name = "Custom";
-                let data = {};
-
-                // Make the widget a Jitsi widget if it looks like a Jitsi widget
-                const jitsiData = Jitsi.getInstance().parsePreferredConferenceUrl(widgetUrl);
-                if (jitsiData) {
-                    logger.log("Making /addwidget widget a Jitsi conference");
-                    type = WidgetType.JITSI;
-                    name = "Jitsi";
-                    data = jitsiData;
-                    widgetUrl = WidgetUtils.getLocalJitsiWrapperUrl();
-                }
-
-                return success(WidgetUtils.setRoomWidget(cli, roomId, widgetId, type, widgetUrl, name, data));
+                return success(
+                    WidgetUtils.setRoomWidget(cli, roomId, widgetId, WidgetType.CUSTOM, widgetUrl, "Custom", {}),
+                );
             } else {
                 return reject(new UserFriendlyError("slash_command|addwidget_no_permissions"));
             }

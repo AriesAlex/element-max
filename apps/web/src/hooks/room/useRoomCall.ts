@@ -44,7 +44,6 @@ const logger = rootLogger.getChild("useRoomCall");
 
 export enum PlatformCallType {
     ElementCall,
-    JitsiCall,
     LegacyCall,
 }
 
@@ -60,11 +59,6 @@ export const getPlatformCallTypeProps = (
             return {
                 label: _t("voip|element_call"),
                 analyticsName: "WebVoipOptionElementCall",
-            };
-        case PlatformCallType.JitsiCall:
-            return {
-                label: _t("voip|jitsi_call"),
-                analyticsName: "WebVoipOptionJitsi",
             };
         case PlatformCallType.LegacyCall:
             return {
@@ -140,8 +134,6 @@ export const useRoomCall = (
     );
     // settings
     const widgets = useWidgets(room);
-    const jitsiWidget = useMemo(() => widgets.find((widget) => WidgetType.JITSI.matches(widget.type)), [widgets]);
-    const hasJitsiWidget = !!jitsiWidget;
     const managedHybridWidget = useMemo(() => widgets.find(isManagedHybridWidget), [widgets]);
     const hasManagedHybridWidget = !!managedHybridWidget;
 
@@ -178,7 +170,7 @@ export const useRoomCall = (
     const callOptions = useMemo((): PlatformCallType[] => {
         const options: PlatformCallType[] = [];
         if (!SdkConfig.get("element_call").disable) {
-            if (useElementCallExclusively && !hasJitsiWidget) {
+            if (useElementCallExclusively) {
                 return [PlatformCallType.ElementCall];
             }
             if (hasGroupCall || mayCreateElementCalls) {
@@ -187,32 +179,22 @@ export const useRoomCall = (
         }
         if (memberCount <= 2) {
             options.push(PlatformCallType.LegacyCall);
-        } else if (mayEditWidgets || hasJitsiWidget) {
-            options.push(PlatformCallType.JitsiCall);
         }
         if (hasGroupCall && WidgetType.CALL.matches(groupCall.widget.type)) {
             // only allow joining the ongoing Element call if there is one.
             return [PlatformCallType.ElementCall];
         }
         return options;
-    }, [
-        memberCount,
-        mayEditWidgets,
-        hasJitsiWidget,
-        hasGroupCall,
-        mayCreateElementCalls,
-        useElementCallExclusively,
-        groupCall?.widget.type,
-    ]);
+    }, [memberCount, hasGroupCall, mayCreateElementCalls, useElementCallExclusively, groupCall?.widget.type]);
 
     let widget: IApp | undefined;
-    if (callOptions.includes(PlatformCallType.JitsiCall) || callOptions.includes(PlatformCallType.LegacyCall)) {
-        widget = jitsiWidget ?? managedHybridWidget;
+    if (callOptions.includes(PlatformCallType.LegacyCall)) {
+        widget = managedHybridWidget;
     }
     if (callOptions.includes(PlatformCallType.ElementCall)) {
         widget = groupCall?.widget;
     } else {
-        widget = groupCall?.widget ?? jitsiWidget;
+        widget = groupCall?.widget;
     }
     const updateWidgetState = useCallback((): void => {
         setCanPinWidget(sdkContext.widgetLayoutStore.canAddToContainer(room, "top"));
@@ -221,7 +203,7 @@ export const useRoomCall = (
     useEventEmitter(sdkContext.widgetLayoutStore, WidgetLayoutStore.emissionForRoom(room), updateWidgetState);
     useEffect(() => {
         updateWidgetState();
-    }, [room, jitsiWidget, groupCall, updateWidgetState]);
+    }, [room, groupCall, updateWidgetState]);
     const [canPinWidget, setCanPinWidget] = useState(false);
     const [widgetPinned, setWidgetPinned] = useState(false);
     // We only want to prompt to pin the widget if it's not element call based.
@@ -235,7 +217,7 @@ export const useRoomCall = (
         if (connectedCalls.find((call) => call.roomId != room.roomId)) {
             return State.Ongoing;
         }
-        if (hasGroupCall && (hasJitsiWidget || hasManagedHybridWidget)) {
+        if (hasGroupCall && hasManagedHybridWidget) {
             return promptPinWidget ? State.Unpinned : State.Ongoing;
         }
         if (hasLegacyCall) {
@@ -254,7 +236,6 @@ export const useRoomCall = (
         callOptions,
         connectedCalls,
         hasGroupCall,
-        hasJitsiWidget,
         hasLegacyCall,
         hasManagedHybridWidget,
         mayCreateElementCalls,
@@ -269,14 +250,7 @@ export const useRoomCall = (
             if (widget && promptPinWidget) {
                 sdkContext.widgetLayoutStore.moveToContainer(room, widget, "top");
             } else {
-                placeCall(
-                    sdkContext.legacyCallHandler,
-                    room,
-                    CallType.Voice,
-                    callPlatformType,
-                    evt?.shiftKey || undefined,
-                    true,
-                );
+                placeCall(sdkContext.legacyCallHandler, room, CallType.Voice, callPlatformType, true, true);
             }
         },
         [promptPinWidget, room, widget, sdkContext.widgetLayoutStore, sdkContext.legacyCallHandler],
@@ -287,16 +261,7 @@ export const useRoomCall = (
             if (widget && promptPinWidget) {
                 sdkContext.widgetLayoutStore.moveToContainer(room, widget, "top");
             } else {
-                // If we have pressed shift then always skip the lobby, otherwise `undefined` will defer
-                // to the defaults of the call implementation.
-                placeCall(
-                    sdkContext.legacyCallHandler,
-                    room,
-                    CallType.Video,
-                    callPlatformType,
-                    evt?.shiftKey || undefined,
-                    false,
-                );
+                placeCall(sdkContext.legacyCallHandler, room, CallType.Video, callPlatformType, true, false);
             }
         },
         [widget, promptPinWidget, room, sdkContext.widgetLayoutStore, sdkContext.legacyCallHandler],

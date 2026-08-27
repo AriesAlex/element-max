@@ -13,7 +13,7 @@ import { TypedEventEmitter } from "matrix-js-sdk/src/matrix";
 import SettingsStore from "../SettingsStore";
 import dis from "../../dispatcher/dispatcher";
 import { Action } from "../../dispatcher/actions";
-import { findHighContrastTheme, getCustomTheme } from "../../theme";
+import { findHighContrastTheme, getCustomTheme, isDarkTheme } from "../../theme";
 import { type ActionPayload } from "../../dispatcher/payloads";
 import { SettingLevel } from "../SettingLevel";
 
@@ -133,7 +133,7 @@ export default class ThemeWatcher extends TypedEventEmitter<ThemeWatcherEvent, T
         if (theme.startsWith("custom-")) {
             return !!getCustomTheme(theme.substring("custom-".length)).is_dark;
         }
-        return theme === "dark" || theme === "dark-hc";
+        return isDarkTheme(theme);
     }
 
     private themeBasedOnSystem(): string | undefined {

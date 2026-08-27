@@ -25,6 +25,10 @@ import RoomContext, { type RoomContextType } from "../contexts/RoomContext";
 import type LegacyCallHandler from "../LegacyCallHandler";
 import { CallStore } from "../stores/CallStore";
 import { SDKContextClass } from "../contexts/SDKContextClass";
+import SdkConfig from "../SdkConfig";
+import { placeCall } from "../utils/room/placeCall";
+
+vi.mock("../utils/room/placeCall", () => ({ placeCall: vi.fn() }));
 
 describe("useRoomCall", () => {
     const client = getMockClientWithEventEmitter({
@@ -141,5 +145,33 @@ describe("useRoomCall", () => {
                 expect(result.current.callOptions).toEqual([PlatformCallType.ElementCall, PlatformCallType.LegacyCall]),
             );
         });
+    });
+
+    it("uses Element Call exclusively and skips its lobby for video and voice calls", async () => {
+        SdkConfig.put({ element_call: { brand: "Element Max Call", use_exclusively: true } });
+        await setupAsyncStoreWithClient(CallStore.instance, client);
+
+        const { result } = render();
+        await waitFor(() => expect(result.current.callOptions).toEqual([PlatformCallType.ElementCall]));
+
+        result.current.videoCallClick(undefined, PlatformCallType.ElementCall);
+        expect(placeCall).toHaveBeenCalledWith(
+            expect.anything(),
+            room,
+            expect.anything(),
+            PlatformCallType.ElementCall,
+            true,
+            false,
+        );
+
+        result.current.voiceCallClick(undefined, PlatformCallType.ElementCall);
+        expect(placeCall).toHaveBeenLastCalledWith(
+            expect.anything(),
+            room,
+            expect.anything(),
+            PlatformCallType.ElementCall,
+            true,
+            true,
+        );
     });
 });

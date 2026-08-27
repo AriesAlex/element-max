@@ -61,6 +61,7 @@ const cssThemes = {
     "theme-light": "./res/themes/light/css/light.pcss",
     "theme-light-high-contrast": "./res/themes/light-high-contrast/css/light-high-contrast.pcss",
     "theme-dark": "./res/themes/dark/css/dark.pcss",
+    "theme-element-max-dark": "./res/themes/element-max-dark/css/element-max-dark.pcss",
     "theme-light-custom": "./res/themes/light-custom/css/light-custom.pcss",
     "theme-dark-custom": "./res/themes/dark-custom/css/dark-custom.pcss",
 };
@@ -168,7 +169,6 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
         entry: {
             bundle: "./src/vector/index.ts",
             mobileguide: "./src/vector/mobile_guide/index.ts",
-            jitsi: "./src/vector/jitsi/index.ts",
             usercontent: "./src/usercontent/index.ts",
             serviceworker: {
                 import: "./src/serviceworker/index.ts",
@@ -216,10 +216,6 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
                 ? [
                       new TerserPlugin({
                           exclude: [
-                              // Already minified and includes an auto-generated license comment
-                              // that the plugin would otherwise pointlessly extract into a separate
-                              // file. We add the actual license using CopyWebpackPlugin below.
-                              "jitsi_external_api.min.js",
                               // Already minified by Element Call's build process (and Terser has
                               // issues with some Unicode characters found within)
                               // https://github.com/terser/terser/issues/1677
@@ -639,20 +635,12 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
                 // HtmlWebpackPlugin will screw up our formatting like the names
                 // of the themes and which chunks we actually care about.
                 inject: false,
-                excludeChunks: ["mobileguide", "usercontent", "jitsi", "serviceworker"],
+                excludeChunks: ["mobileguide", "usercontent", "serviceworker"],
                 minify: false,
                 templateParameters: {
                     og_image_url: ogImageUrl,
                     csp_extra_source: process.env.CSP_EXTRA_SOURCE ?? "",
                 },
-            }),
-
-            // This is the jitsi widget wrapper (embedded, so isolated stack)
-            new HtmlWebpackPlugin({
-                template: "./src/vector/jitsi/index.html",
-                filename: "jitsi.html",
-                minify: false,
-                chunks: ["jitsi"],
             }),
 
             // This is the mobile guide's entry point (separate for faster mobile loading)
@@ -708,8 +696,6 @@ export default (env: string, argv: Record<string, any>): webpack.Configuration =
                 patterns: [
                     "res/apple-app-site-association",
                     { from: ".well-known/**", context: path.resolve(__dirname, "res") },
-                    "res/jitsi_external_api.min.js",
-                    "res/jitsi_external_api.min.js.LICENSE.txt",
                     "res/manifest.json",
                     { from: "themes/**", context: path.resolve(__dirname, "res") },
                     { from: "vector-icons/**", context: path.resolve(__dirname, "res") },

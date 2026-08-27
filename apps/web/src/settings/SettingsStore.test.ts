@@ -86,6 +86,12 @@ describe("SettingsStore", () => {
         });
     });
 
+    it("uses the Element Max media and search defaults", () => {
+        expect(SettingsStore.getDefaultValue("autoplayGifs")).toBe(true);
+        expect(SettingsStore.getDefaultValue("ctrlFForSearch")).toBe(true);
+        expect(SettingsStore.getDefaultValue("enableSyntaxHighlightLanguageDetection")).toBe(true);
+    });
+
     describe("exportForRageshake", () => {
         it("should not export settings marked as non-exportable", async () => {
             await SettingsStore.setValue("userTimezone", null, SettingLevel.DEVICE, "Europe/London");

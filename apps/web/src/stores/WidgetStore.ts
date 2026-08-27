@@ -18,6 +18,7 @@ import ActiveWidgetStore from "../stores/ActiveWidgetStore";
 import WidgetUtils from "../utils/WidgetUtils";
 import { UPDATE_EVENT } from "./AsyncStore";
 import { type IApp } from "../utils/WidgetUtils-types";
+import { WidgetType } from "../widgets/WidgetType";
 
 export type { IApp };
 
@@ -94,15 +95,17 @@ export default class WidgetStore extends AsyncStoreWithClient<EmptyObject> {
     };
 
     private generateApps(room: Room): IApp[] {
-        return WidgetEchoStore.getEchoedRoomWidgets(room.roomId, WidgetUtils.getRoomWidgets(room)).map((ev) => {
-            return WidgetUtils.makeAppConfig(
-                ev.getStateKey()!,
-                ev.getContent(),
-                ev.getSender()!,
-                ev.getRoomId(),
-                ev.getId(),
-            );
-        });
+        return WidgetEchoStore.getEchoedRoomWidgets(room.roomId, WidgetUtils.getRoomWidgets(room))
+            .map((ev) =>
+                WidgetUtils.makeAppConfig(
+                    ev.getStateKey()!,
+                    ev.getContent(),
+                    ev.getSender()!,
+                    ev.getRoomId(),
+                    ev.getId(),
+                ),
+            )
+            .filter((app) => !WidgetType.JITSI.matches(app.type));
     }
 
     private loadRoomWidgets(room: Room | null): void {
@@ -185,6 +188,9 @@ export default class WidgetStore extends AsyncStoreWithClient<EmptyObject> {
     }
 
     public addVirtualWidget(widget: IWidget, roomId: string): IApp {
+        if (WidgetType.JITSI.matches(widget.type)) {
+            throw new Error("Jitsi widgets are disabled in Element Max");
+        }
         this.initRoom(roomId);
         const app = WidgetUtils.makeAppConfig(widget.id, widget, widget.creatorUserId, roomId, undefined);
         this.widgetMap.set(WidgetUtils.getWidgetUid(app), app);

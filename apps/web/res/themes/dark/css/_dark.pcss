@@ -29,20 +29,20 @@ $system: var(--cpd-color-bg-subtle-secondary);
  * To use under very rare circumstances, always prefer the semantics defined
  * in https://compound.element.io/?path=/docs /tokens-semantic-colors--docs
  */
-$accent-100: var(--cpd-color-green-100);
-$accent-200: var(--cpd-color-green-200);
-$accent-300: var(--cpd-color-green-300);
-$accent-400: var(--cpd-color-green-400);
-$accent-500: var(--cpd-color-green-500);
-$accent-600: var(--cpd-color-green-600);
-$accent-700: var(--cpd-color-green-700);
-$accent-800: var(--cpd-color-green-800);
-$accent-900: var(--cpd-color-green-900);
-$accent-1000: var(--cpd-color-green-1000);
-$accent-1100: var(--cpd-color-green-1100);
-$accent-1200: var(--cpd-color-green-1200);
-$accent-1300: var(--cpd-color-green-1300);
-$accent-1400: var(--cpd-color-green-1400);
+$accent-100: var(--cpd-color-accent-100, var(--cpd-color-green-100));
+$accent-200: var(--cpd-color-accent-200, var(--cpd-color-green-200));
+$accent-300: var(--cpd-color-accent-300, var(--cpd-color-green-300));
+$accent-400: var(--cpd-color-accent-400, var(--cpd-color-green-400));
+$accent-500: var(--cpd-color-accent-500, var(--cpd-color-green-500));
+$accent-600: var(--cpd-color-accent-600, var(--cpd-color-green-600));
+$accent-700: var(--cpd-color-accent-700, var(--cpd-color-green-700));
+$accent-800: var(--cpd-color-accent-800, var(--cpd-color-green-800));
+$accent-900: var(--cpd-color-accent-900, var(--cpd-color-green-900));
+$accent-1000: var(--cpd-color-accent-1000, var(--cpd-color-green-1000));
+$accent-1100: var(--cpd-color-accent-1100, var(--cpd-color-green-1100));
+$accent-1200: var(--cpd-color-accent-1200, var(--cpd-color-green-1200));
+$accent-1300: var(--cpd-color-accent-1300, var(--cpd-color-green-1300));
+$accent-1400: var(--cpd-color-accent-1400, var(--cpd-color-green-1400));
 
 /* Reused Figma non-compound colors */
 /* ******************** */
@@ -178,7 +178,7 @@ $message-action-bar-hover-border-color: $header-panel-text-primary-color;
 /* Reaction row */
 /* ******************** */
 $reaction-row-button-hover-border-color: $header-panel-text-primary-color;
-$reaction-row-button-selected-bg-color: #1f6954;
+$reaction-row-button-selected-bg-color: var(--cpd-color-accent-700, #1f6954);
 /* ******************** */
 
 /* Voice messages */
@@ -189,7 +189,7 @@ $voice-record-icon-color: $quaternary-content;
 
 /* Bubble tiles */
 /* ******************** */
-$eventbubble-self-bg: var(--cpd-color-green-300);
+$eventbubble-self-bg: var(--cpd-color-accent-300, var(--cpd-color-green-300));
 $eventbubble-others-bg: var(--cpd-color-gray-300);
 $eventbubble-bg-hover: var(--cpd-color-bg-subtle-secondary);
 /* ******************** */

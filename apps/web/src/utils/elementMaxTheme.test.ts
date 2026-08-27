@@ -13,6 +13,7 @@ import {
     applyStoredThemeOverrides,
     applyThemePreset,
     clearThemeColor,
+    collectThemeColorVariables,
     deleteThemePreset,
     exportThemeCollection,
     getThemePresets,
@@ -23,14 +24,28 @@ import {
 } from "./elementMaxTheme";
 
 describe("Element Max theme persistence", () => {
+    let themeVariables: HTMLStyleElement;
+
     beforeEach(() => {
         localStorage.clear();
         document.body.removeAttribute("style");
+        themeVariables = document.createElement("style");
+        themeVariables.textContent = `
+            body {
+                --cpd-color-test: #abcdef;
+                --accent: #0055ff;
+                --active: rgb(1, 2, 3);
+                --local: red;
+                --layout-gap: 8px;
+            }
+        `;
+        document.head.appendChild(themeVariables);
     });
 
     afterEach(() => {
         localStorage.clear();
         document.body.removeAttribute("style");
+        themeVariables.remove();
     });
 
     it("applies valid colors immediately and restores them", () => {
@@ -48,6 +63,7 @@ describe("Element Max theme persistence", () => {
     it("rejects unsafe variable names and non-colors", () => {
         expect(() => setThemeColor("background", "red")).toThrow();
         expect(() => setThemeColor("--valid-name", "url(https://example.org/x)")).toThrow();
+        expect(() => setThemeColor("--layout-gap", "red")).toThrow();
     });
 
     it("creates, applies, replaces, and deletes presets", () => {
@@ -73,5 +89,63 @@ describe("Element Max theme persistence", () => {
 
         expect(presets).toEqual([{ name: "Local", colors: { "--local": "red" } }]);
         expect(document.body.style.getPropertyValue("--active")).toBe("rgb(1, 2, 3)");
+    });
+
+    it("collects only variables whose actual computed values are colors", () => {
+        setThemeColor("--accent", "#3366ff");
+        setThemeColor("--active", "#4466aa");
+        setThemeColor("--cpd-color-test", "#123456");
+        setThemeColor("--local", "#ff0000");
+
+        expect(collectThemeColorVariables().map(({ name }) => name)).toEqual([
+            "--accent",
+            "--active",
+            "--cpd-color-test",
+            "--local",
+        ]);
+    });
+
+    it("rejects legacy files that stored colors in layout variables", () => {
+        const serialized = JSON.stringify({
+            schema: "element-max-theme",
+            version: 1,
+            active: {
+                "--cpd-color-test": "#123456",
+                "--layout-gap": "rgb(235, 238, 242)",
+            },
+            presets: [
+                {
+                    name: "Recovered",
+                    colors: {
+                        "--accent": "#3366ff",
+                        "--layout-gap": "rgb(235, 238, 242)",
+                    },
+                },
+            ],
+        });
+
+        expect(() => importThemeCollection(serialized)).toThrow("Unknown theme color variable: --layout-gap");
+        expect(document.body.style.getPropertyValue("--cpd-color-test")).toBe("");
+        expect(document.body.style.getPropertyValue("--layout-gap")).toBe("");
+    });
+
+    it("clears persisted overrides from the legacy broken editor", () => {
+        localStorage.setItem(
+            "element_max_theme_editor",
+            JSON.stringify({
+                version: 1,
+                active: {
+                    "--cpd-color-test": "#123456",
+                    "--layout-gap": "rgb(235, 238, 242)",
+                },
+                presets: [],
+            }),
+        );
+
+        applyStoredThemeOverrides();
+
+        expect(localStorage.getItem("element_max_theme_editor")).toBeNull();
+        expect(document.body.style.getPropertyValue("--cpd-color-test")).toBe("");
+        expect(document.body.style.getPropertyValue("--layout-gap")).toBe("");
     });
 });

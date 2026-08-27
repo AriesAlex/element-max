@@ -50,6 +50,11 @@ function isColor(value: string): boolean {
     return probe.style.color !== "";
 }
 
+function resolveThemeColor(name: string): string | undefined {
+    const resolved = getComputedStyle(document.body).getPropertyValue(name).trim();
+    return isColor(resolved) ? resolved : undefined;
+}
+
 function sanitizeColors(value: unknown): ThemeColors {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
         throw new Error("Theme colors must be an object");
@@ -62,6 +67,9 @@ function sanitizeColors(value: unknown): ThemeColors {
     for (const [name, color] of entries) {
         if (!CSS_VARIABLE.test(name) || typeof color !== "string" || !isColor(color)) {
             throw new Error(`Invalid theme color: ${name}`);
+        }
+        if (!resolveThemeColor(name)) {
+            throw new Error(`Unknown theme color variable: ${name}`);
         }
         colors[name] = color.trim();
     }
@@ -92,6 +100,7 @@ function loadState(): StoredThemeState {
             presets: sanitizePresets(parsed.presets ?? []),
         };
     } catch {
+        localStorage.removeItem(STORAGE_KEY);
         return emptyState();
     }
 }
@@ -239,19 +248,11 @@ export function collectThemeColorVariables(): ThemeColorVariable[] {
     const names = collectVariableNames();
     for (const name of Object.keys(loadState().active)) names.add(name);
 
-    const probe = document.createElement("span");
-    probe.hidden = true;
-    document.body.appendChild(probe);
-
     const colors: ThemeColorVariable[] = [];
     for (const name of names) {
-        probe.style.color = "";
-        probe.style.color = `var(${name})`;
-        const resolved = getComputedStyle(probe).color;
-        if (!resolved || resolved === "rgba(0, 0, 0, 0)" || !isColor(resolved)) continue;
+        const resolved = resolveThemeColor(name);
+        if (!resolved) continue;
         colors.push({ name, value: resolved, pickerValue: rgbToHex(resolved) });
     }
-
-    probe.remove();
     return colors.sort((a, b) => a.name.localeCompare(b.name));
 }

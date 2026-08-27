@@ -842,7 +842,7 @@ export const SETTINGS: Settings = {
     "autoplayGifs": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
         displayName: _td("settings|autoplay_gifs"),
-        default: false,
+        default: true,
     },
     "autoplayVideo": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
@@ -852,7 +852,7 @@ export const SETTINGS: Settings = {
     "enableSyntaxHighlightLanguageDetection": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
         displayName: _td("settings|automatic_language_detection_syntax_highlight"),
-        default: false,
+        default: true,
     },
     "expandCodeByDefault": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
@@ -895,7 +895,7 @@ export const SETTINGS: Settings = {
     "ctrlFForSearch": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,
         displayName: IS_MAC ? _td("settings|use_command_f_search") : _td("settings|use_control_f_search"),
-        default: false,
+        default: true,
     },
     "MessageComposerInput.ctrlEnterToSend": {
         supportedLevels: LEVELS_ACCOUNT_SETTINGS,

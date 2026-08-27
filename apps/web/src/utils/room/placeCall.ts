@@ -34,7 +34,7 @@ export const placeCall = async (
     const { analyticsName } = getPlatformCallTypeProps(platformCallType);
     PosthogTrackers.trackInteraction(analyticsName);
 
-    if (platformCallType == PlatformCallType.LegacyCall || platformCallType == PlatformCallType.JitsiCall) {
+    if (platformCallType == PlatformCallType.LegacyCall) {
         await legacyCallHandler.placeCall(room.roomId, callType);
     } else if (platformCallType == PlatformCallType.ElementCall) {
         defaultDispatcher.dispatch<ViewRoomPayload>({

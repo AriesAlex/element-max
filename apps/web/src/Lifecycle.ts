@@ -35,7 +35,6 @@ import { IntegrationManagers } from "./integrations/IntegrationManagers";
 import { Mjolnir } from "./mjolnir/Mjolnir";
 import { DeviceListener } from "./device-listener";
 import { isE2EEDisabled } from "./utils/crypto/isE2EEDisabled";
-import { Jitsi } from "./widgets/Jitsi";
 import { SSO_HOMESERVER_URL_KEY, SSO_ID_SERVER_URL_KEY, SSO_IDP_ID_KEY } from "./BasePlatform";
 import ThreepidInviteStore from "./stores/ThreepidInviteStore";
 import { PosthogAnalytics } from "./PosthogAnalytics";
@@ -1087,9 +1086,6 @@ async function startMatrixClient(
     if (!SettingsStore.getValue("lowBandwidth")) {
         Presence.start();
     }
-
-    // Now that we have a MatrixClientPeg, update the Jitsi info
-    Jitsi.getInstance().start();
 
     // dispatch that we finished starting up to wire up any other bits
     // of the matrix client that cannot be set prior to starting up.

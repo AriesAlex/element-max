@@ -41,7 +41,7 @@ describe("ScreenShareButton", () => {
     expect(onClick).toHaveBeenCalledOnce();
   });
 
-  it("allows arbitrary capture settings and system audio control", async () => {
+  it("applies resolution and frame-rate presets with the recommended codec", async () => {
     const user = userEvent.setup();
     render(
       <TooltipProvider>
@@ -59,22 +59,14 @@ describe("ScreenShareButton", () => {
     );
 
     expect(screen.getByRole("status")).toHaveTextContent("Not sharing");
-    const width = screen.getByRole("spinbutton", { name: "Width (px)" });
-    await user.clear(width);
-    await user.type(width, "3840");
-    await user.tab();
-
-    const height = screen.getByRole("spinbutton", { name: "Height (px)" });
-    await user.clear(height);
-    await user.type(height, "2160");
-    await user.tab();
-
-    const frameRate = screen.getByRole("spinbutton", {
-      name: "Frame rate (FPS)",
-    });
-    await user.clear(frameRate);
-    await user.type(frameRate, "120");
-    await user.tab();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Resolution" }),
+      "2160p",
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Frame rate (FPS)" }),
+      "120",
+    );
 
     const bitrate = screen.getByRole("spinbutton", {
       name: "Maximum bitrate (Mbps)",
@@ -83,23 +75,77 @@ describe("ScreenShareButton", () => {
     await user.type(bitrate, "52.5");
     await user.tab();
 
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Video codec" }),
-      "av1",
-    );
-
     expect(screenShareConfiguration.getValue()).toEqual({
       width: 3840,
       height: 2160,
       frameRate: 120,
       maxBitrateMbps: 52.5,
-      videoCodec: "av1",
+      videoCodec: "vp9",
     });
+    expect(
+      screen.getByText(
+        /best default for a sharp high-resolution screen share/i,
+      ),
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("menuitemcheckbox", { name: "Share system audio" }),
     );
     expect(screenShareSystemAudio.getValue()).toBe(false);
+  });
+
+  it("shows numeric inputs only for custom resolution and frame rate", async () => {
+    const user = userEvent.setup();
+    render(
+      <TooltipProvider>
+        <ScreenShareButton
+          size="lg"
+          enabled={false}
+          onClick={() => {}}
+          status={null}
+        />
+      </TooltipProvider>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Screen sharing settings" }),
+    );
+    expect(
+      screen.queryByRole("spinbutton", { name: "Width (px)" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("spinbutton", { name: "Custom frame rate (FPS)" }),
+    ).not.toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Resolution" }),
+      "custom",
+    );
+    const width = screen.getByRole("spinbutton", { name: "Width (px)" });
+    await user.clear(width);
+    await user.type(width, "3440");
+    await user.tab();
+    const height = screen.getByRole("spinbutton", { name: "Height (px)" });
+    await user.clear(height);
+    await user.type(height, "1440");
+    await user.tab();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Frame rate (FPS)" }),
+      "custom",
+    );
+    const frameRate = screen.getByRole("spinbutton", {
+      name: "Custom frame rate (FPS)",
+    });
+    await user.clear(frameRate);
+    await user.type(frameRate, "144");
+    await user.tab();
+
+    expect(screenShareConfiguration.getValue()).toMatchObject({
+      width: 3440,
+      height: 1440,
+      frameRate: 144,
+    });
   });
 
   it("shows the actual active capture settings", async () => {

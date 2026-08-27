@@ -1,8 +1,8 @@
 {
-    "name": "Element",
-    "short_name": "Element",
+    "name": "Element Max",
+    "short_name": "Element Max",
     "display": "standalone",
-    "theme_color": "#76CFA6",
+    "theme_color": "#34B8D9",
     "start_url": "index.html",
     "icons": [
         {

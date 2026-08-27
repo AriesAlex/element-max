@@ -87,11 +87,16 @@ export function isHighContrastTheme(theme: string): boolean {
     return Object.values(HIGH_CONTRAST_THEMES).includes(theme);
 }
 
+export function isDarkTheme(theme: string): boolean {
+    return theme === "dark" || theme === "dark-hc" || theme === "element-max-dark";
+}
+
 export function enumerateThemes(): { [key: string]: string } {
     const BUILTIN_THEMES = {
         "light": _t("common|light"),
         "light-high-contrast": _t("theme|light_high_contrast"),
         "dark": _t("common|dark"),
+        "element-max-dark": "Element Max",
     };
     const customThemes = SettingsStore.getValue("custom_themes") || [];
     const customThemeNames: Record<string, string> = {};

@@ -833,9 +833,6 @@ importers:
       '@types/jest':
         specifier: 30.0.0
         version: 30.0.0
-      '@types/jitsi-meet':
-        specifier: ^2.0.2
-        version: 2.0.5
       '@types/jsrsasign':
         specifier: ^10.5.4
         version: 10.5.15
@@ -6105,9 +6102,6 @@ packages:
 
   '@types/jest@30.0.0':
     resolution: {integrity: sha512-XTYugzhuwqWjws0CVz8QpM36+T+Dz5mTEBKhNs/esGLnCIlGdRy+Dq78NRjd7ls7r8BC8ZRMOrKlkO1hU0JOwA==}
-
-  '@types/jitsi-meet@2.0.5':
-    resolution: {integrity: sha512-rlYDoTolCfuvgU/Zg936+jIJHvMSXIH2l9bHkBVH3J3WzSECwsVu9LbhUc5FTXtFy1uENXwTxVVtQqCs7WiDkA==}
 
   '@types/jsdom@21.1.7':
     resolution: {integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==}
@@ -18752,8 +18746,6 @@ snapshots:
     dependencies:
       expect: 30.4.1
       pretty-format: 30.4.1
-
-  '@types/jitsi-meet@2.0.5': {}
 
   '@types/jsdom@21.1.7':
     dependencies:

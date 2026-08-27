@@ -199,6 +199,7 @@ describe("theme", () => {
                 "light": "Light",
                 "light-high-contrast": "Light high contrast",
                 "dark": "Dark",
+                "element-max-dark": "Element Max",
                 "custom-pink": "pink",
             });
         });
@@ -209,6 +210,7 @@ describe("theme", () => {
                 "light": "Light",
                 "light-high-contrast": "Light high contrast",
                 "dark": "Dark",
+                "element-max-dark": "Element Max",
             });
         });
     });
@@ -219,6 +221,7 @@ describe("theme", () => {
             expect(getOrderedThemes()).toEqual([
                 { id: "light", name: "Light" },
                 { id: "dark", name: "Dark" },
+                { id: "element-max-dark", name: "Element Max" },
                 { id: "custom-Apple Green", name: "Apple Green" },
                 { id: "custom-Zebra Striped", name: "Zebra Striped" },
             ]);

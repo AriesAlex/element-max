@@ -209,4 +209,12 @@ describe("ThemeWatcher", function () {
         expect(themeWatcher.getEffectiveTheme()).toBe("custom-darkula");
         expect(themeWatcher.isUserOnDarkTheme()).toBe(true);
     });
+
+    it("should identify the Element Max theme as dark", () => {
+        SettingsStore.getValueAt = makeGetValueAt({ use_system_theme: false, theme: "element-max-dark" });
+        SettingsStore.getValue = makeGetValue({});
+
+        const themeWatcher = new ThemeWatcher();
+        expect(themeWatcher.isUserOnDarkTheme()).toBe(true);
+    });
 });

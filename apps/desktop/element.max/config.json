@@ -9,8 +9,13 @@
         }
     },
     "brand": "Element Max",
+    "default_theme": "element-max-dark",
     "element_max": {
         "disable_e2ee": true
+    },
+    "element_call": {
+        "brand": "Element Max Call",
+        "use_exclusively": true
     },
     "update_base_url": "https://ariesalex.github.io/element-max/updates/",
     "integrations_ui_url": "https://scalar.vector.im/",
@@ -45,7 +50,7 @@
         "RustCrypto.staged_rollout_percent": 60
     },
     "features": {
-        "feature_video_rooms": true,
+        "feature_video_rooms": false,
         "feature_element_call_video_rooms": true
     }
 }

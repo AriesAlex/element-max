@@ -34,6 +34,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import {
     findHighContrastTheme,
     getOrderedThemes,
+    isDarkTheme,
     type CustomTheme as CustomThemeType,
     type ITheme,
 } from "../../../theme";
@@ -188,7 +189,7 @@ function useThemes(): Array<ITheme & { isDark: boolean }> {
         // Check if the themes are dark
         return allThemes.map((theme) => {
             const customTheme = customThemeMap.get(theme.name);
-            const isDark = (customTheme ? customTheme.is_dark : theme.id.includes("dark")) || false;
+            const isDark = (customTheme ? customTheme.is_dark : isDarkTheme(theme.id)) || false;
             return { ...theme, isDark };
         });
     }, [customThemes]);

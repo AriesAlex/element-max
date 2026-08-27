@@ -168,6 +168,10 @@ Write-Host "Building Element Web"
 Invoke-Pnpm -Version "11.20.0" -Arguments @("install", "--frozen-lockfile") -WorkingDirectory $repoRoot
 Invoke-Pnpm -Version "11.20.0" -Arguments @("exec", "nx", "daemon", "--stop") -WorkingDirectory $repoRoot
 $env:NX_DAEMON = "false"
+$webappDir = Join-Path $repoRoot "apps/web/webapp"
+if (Test-Path -LiteralPath $webappDir) {
+    Remove-Item -LiteralPath $webappDir -Recurse -Force
+}
 Copy-Item -LiteralPath (Join-Path $desktopDir "element.max/config.json") -Destination (Join-Path $repoRoot "apps/web/config.json") -Force
 Invoke-Pnpm -Version "11.20.0" -Arguments @("--filter", "element-web", "build") -WorkingDirectory $repoRoot
 
