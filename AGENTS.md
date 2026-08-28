@@ -95,6 +95,9 @@ Perl, Tcl и NASM. Локальный release-скрипт сам входит �
 - `.github/workflows/deploy-element-max-pages.yaml` не компилирует приложение: он вручную или после
   ручной fallback-сборки скачивает готовый Squirrel feed из rolling release, удаляет прежние
   `github-pages` artifacts и публикует landing/feed с retention один день.
+- В репозитории должны существовать только эти два workflow. Не возвращай upstream CI, cron/schedule,
+  push/pull_request/release-триггеры, triage, sync, Localazy, Docker, nightly или другие фоновые Actions:
+  любая GitHub-автоматизация Element Max запускается только явной ручной командой пользователя.
 - Локальные `apps/web/config.json`, `webapp`, `dist`, `node_modules` и прочие результаты сборки не
   коммить. Временные исследовательские файлы держи вне репозитория.
 
